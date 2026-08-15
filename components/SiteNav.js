@@ -18,7 +18,7 @@ export default function SiteNav({ rightSlot, showAnchors, showDiscord }) {
     <div className="nav-sticky">
       <div className="nav nav-inner">
         <Link href="/" className="brand" onClick={close}>
-          <span className="dot" />
+          <img src="/logo.png" alt="FundedOrbit" className="dot" />
           FundedOrbit
         </Link>
 

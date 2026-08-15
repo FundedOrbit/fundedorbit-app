@@ -86,7 +86,7 @@ export default function LoginPage() {
       </div>
       <div className="auth-card">
         <div className="brand" style={{ marginBottom: 22, justifyContent: "center" }}>
-          <span className="dot" />
+          <img src="/logo.png" alt="FundedOrbit" className="dot" />
           {d.brand}
         </div>
 

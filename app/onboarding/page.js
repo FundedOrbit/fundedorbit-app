@@ -89,7 +89,7 @@ export default function OnboardingPage() {
       </div>
       <div className="auth-card">
         <div className="brand" style={{ marginBottom: 6, justifyContent: "center" }}>
-          <span className="dot" />
+          <img src="/logo.png" alt="FundedOrbit" className="dot" />
           FundedOrbit
         </div>
         <p style={{ textAlign: "center", color: "var(--text-muted)", fontSize: 13, marginBottom: 22 }}>
