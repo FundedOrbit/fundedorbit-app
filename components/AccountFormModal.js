@@ -54,7 +54,7 @@ function emptyForm(account) {
     notes: "",
     resets: [],
     extraIds: [],
-    withdrawals: [{ status: "solicitado", requestDate: "", receivedDate: "", amount: "", denialReason: "" }],
+    withdrawals: [{ status: "solicitado", requestDate: "", receivedDate: "", amount: "", denialReason: "", link: "" }],
   };
 }
 
@@ -102,7 +102,7 @@ export default function AccountFormModal({ account, userId, onClose, onSaved }) 
       ...f,
       withdrawals: [
         ...f.withdrawals,
-        { status: "solicitado", requestDate: "", receivedDate: "", amount: "", denialReason: "" },
+        { status: "solicitado", requestDate: "", receivedDate: "", amount: "", denialReason: "", link: "" },
       ],
     }));
   }
@@ -323,6 +323,10 @@ export default function AccountFormModal({ account, userId, onClose, onSaved }) 
                 <div className="field">
                   <label>{a.wdReceivedDate}</label>
                   <input type="date" value={w.receivedDate || ""} onChange={(e) => updateWithdrawal(i, "receivedDate", e.target.value)} />
+                </div>
+                <div className="field" style={{ gridColumn: "1 / -1" }}>
+                  <label>{a.wdLink}</label>
+                  <input type="url" placeholder="https://..." value={w.link || ""} onChange={(e) => updateWithdrawal(i, "link", e.target.value)} />
                 </div>
                 {w.status === "denegado" && (
                   <div className="field" style={{ gridColumn: "1 / -1" }}>

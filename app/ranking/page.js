@@ -6,7 +6,7 @@ import { supabase } from "../../lib/supabaseClient";
 import { useLanguage } from "../../components/LanguageProvider";
 import SiteNav from "../../components/SiteNav";
 import SiteFooter from "../../components/SiteFooter";
-import { mockRankings } from "../../lib/mockRankings";
+import { mockRankings, mockCompanyRankings } from "../../lib/mockRankings";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 
@@ -28,9 +28,11 @@ export default function RankingPage() {
   }, []);
 
   const top3 = mockRankings.slice(0, 3);
-  const rest = mockRankings.slice(3);
+  const restTraders = mockRankings.slice(3);
+  const top3Companies = mockCompanyRankings.slice(0, 3);
+  const restCompanies = mockCompanyRankings.slice(3);
 
-  function renderRow(u) {
+  function renderTraderRow(u) {
     return (
       <div className="rank-row" key={u.rank}>
         <span className={u.rank <= 3 ? "rank-medal" : ""}>{u.rank <= 3 ? MEDALS[u.rank - 1] : u.rank}</span>
@@ -40,6 +42,17 @@ export default function RankingPage() {
         <span>{u.country}</span>
         <span className="positive">+{u.roi.toFixed(1)}%</span>
         <span>{u.withdrawals}</span>
+      </div>
+    );
+  }
+
+  function renderCompanyRow(c) {
+    return (
+      <div className="rank-row rank-row-4col" key={c.rank}>
+        <span className={c.rank <= 3 ? "rank-medal" : ""}>{c.rank <= 3 ? MEDALS[c.rank - 1] : c.rank}</span>
+        <span className="rank-trader">{c.company}</span>
+        <span className="positive">{c.avgDaysToPay.toFixed(1)}d</span>
+        <span>{c.totalWithdrawals}</span>
       </div>
     );
   }
@@ -66,13 +79,46 @@ export default function RankingPage() {
               <span>{r.colWithdrawals}</span>
             </div>
 
-            {top3.map(renderRow)}
+            {top3.map(renderTraderRow)}
 
             {loggedIn ? (
-              rest.map(renderRow)
+              restTraders.map(renderTraderRow)
             ) : (
               <div className="rank-blur-wrap">
-                <div className="rank-blurred">{rest.map(renderRow)}</div>
+                <div className="rank-blurred">{restTraders.map(renderTraderRow)}</div>
+                <div className="rank-blur-overlay">
+                  <div className="rank-blur-title">{r.blurTitle}</div>
+                  <div className="rank-blur-sub">{r.blurSub}</div>
+                  <Link href="/login" className="btn btn-primary">
+                    {r.joinCta}
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+
+      <section className="section" style={{ maxWidth: 760, margin: "0 auto", paddingTop: 10 }}>
+        <h2 style={{ fontSize: 22, textAlign: "center", marginBottom: 6 }}>{r.companiesTitle}</h2>
+        <p className="sub" style={{ marginBottom: 24 }}>{r.companiesSubtitle}</p>
+
+        {!checked ? null : (
+          <div className="rank-table">
+            <div className="rank-row rank-row-4col rank-head">
+              <span>#</span>
+              <span>{r.colCompanyName}</span>
+              <span>{r.colAvgDaysPay}</span>
+              <span>{r.colTotalCommunityWd}</span>
+            </div>
+
+            {top3Companies.map(renderCompanyRow)}
+
+            {loggedIn ? (
+              restCompanies.map(renderCompanyRow)
+            ) : (
+              <div className="rank-blur-wrap">
+                <div className="rank-blurred">{restCompanies.map(renderCompanyRow)}</div>
                 <div className="rank-blur-overlay">
                   <div className="rank-blur-title">{r.blurTitle}</div>
                   <div className="rank-blur-sub">{r.blurSub}</div>

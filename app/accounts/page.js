@@ -57,6 +57,90 @@ export default function AccountsPage() {
     setAccounts((prev) => prev.filter((x) => x.id !== id));
   }
 
+  function handleExportCsv() {
+    const maxWithdrawals = Math.max(1, ...accounts.map((x) => (x.withdrawals || []).length));
+    const maxResets = Math.max(0, ...accounts.map((x) => (x.resets || []).length));
+    const maxExtraIds = Math.max(0, ...accounts.map((x) => (x.extra_ids || []).length));
+
+    const wdHeaders = [];
+    for (let i = 0; i < maxWithdrawals; i++) {
+      wdHeaders.push(
+        `Retiro${i + 1} Estado`,
+        `Retiro${i + 1} FechaSolicitado`,
+        `Retiro${i + 1} FechaRecibido`,
+        `Retiro${i + 1} Monto`,
+        `Retiro${i + 1} Link`,
+        `Retiro${i + 1} RazonNegativa`
+      );
+    }
+    const resetHeaders = [];
+    for (let i = 0; i < maxResets; i++) {
+      resetHeaders.push(`Reinicio${i + 1} Fecha`, `Reinicio${i + 1} Costo`);
+    }
+    const extraIdHeaders = [];
+    for (let i = 0; i < maxExtraIds; i++) {
+      extraIdHeaders.push(`IDAdicional${i + 1} Etiqueta`, `IDAdicional${i + 1} Valor`);
+    }
+
+    const headers = [
+      "ID Cuenta", ...extraIdHeaders, "Empresa", "Tipo de cuenta", "Tamaño", "Método", "Estado",
+      "Fecha Compra", "Costo Compra", "Fecha Pasada", "Costo Activación", "Fecha Quemada",
+      "Cancelada", "Fecha Cancelada", "Baneada", "Fecha Baneo", "Razón Baneo",
+      "Cobro Recurrente", "Num Cobros Recurrentes", "Costo Cobros Recurrentes",
+      ...resetHeaders, ...wdHeaders,
+      "Total Invertido", "Total Retirado (recibido)", "Pendiente", "Denegado", "Neto", "ROI %", "Notas",
+    ];
+
+    const rows = accounts.map((acc) => {
+      const m = accountMetrics(acc);
+      const wd = acc.withdrawals || [];
+      const wdCells = [];
+      for (let i = 0; i < maxWithdrawals; i++) {
+        const w = wd[i];
+        wdCells.push(
+          w ? w.status || "" : "",
+          w ? w.requestDate || "" : "",
+          w ? w.receivedDate || "" : "",
+          w ? w.amount || "" : "",
+          w ? w.link || "" : "",
+          w ? w.denialReason || "" : ""
+        );
+      }
+      const resets = acc.resets || [];
+      const resetCells = [];
+      for (let i = 0; i < maxResets; i++) {
+        const r = resets[i];
+        resetCells.push(r ? r.date || "" : "", r ? r.cost || "" : "");
+      }
+      const extraIds = acc.extra_ids || [];
+      const extraIdCells = [];
+      for (let i = 0; i < maxExtraIds; i++) {
+        const x = extraIds[i];
+        extraIdCells.push(x ? x.label || "" : "", x ? x.id || "" : "");
+      }
+      return [
+        acc.account_id, ...extraIdCells, acc.company, acc.account_type, acc.size, acc.method, acc.status,
+        acc.purchase_date, acc.purchase_cost, acc.passed_date, m.activationFee, acc.burned_date,
+        acc.cancelled ? "Sí" : "No", acc.cancelled_date, acc.banned ? "Sí" : "No", acc.ban_date, acc.ban_reason,
+        acc.recurring ? "Sí" : "No", m.recurringCharges, m.recurringChargesCost,
+        ...resetCells, ...wdCells,
+        m.invested, m.withdrawn, m.pending, m.denied, m.net, m.roi.toFixed(2), acc.notes,
+      ];
+    });
+
+    const csv = [headers, ...rows]
+      .map((r) => r.map((c) => `"${String(c == null ? "" : c).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const today = new Date().toISOString().slice(0, 10);
+    link.href = url;
+    link.download = `fundedorbit-cuentas-${today}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   if (loading) {
     return <div className="auth-wrap">{a.loading}</div>;
   }
@@ -70,15 +154,22 @@ export default function AccountsPage() {
       <section style={{ padding: "20px 0 40px" }}>
         <div className="accounts-toolbar">
           <h1 style={{ fontSize: 26, margin: 0 }}>{a.title}</h1>
-          <button
-            className="btn btn-primary"
-            onClick={() => {
-              setEditing(null);
-              setShowForm(true);
-            }}
-          >
-            {a.newAccount}
-          </button>
+          <div style={{ display: "flex", gap: 10 }}>
+            {accounts.length > 0 && (
+              <button className="btn btn-ghost" onClick={handleExportCsv}>
+                {a.exportCsv}
+              </button>
+            )}
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                setEditing(null);
+                setShowForm(true);
+              }}
+            >
+              {a.newAccount}
+            </button>
+          </div>
         </div>
 
         {accounts.length === 0 ? (

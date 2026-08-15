@@ -35,9 +35,7 @@ export default function SiteNav({ rightSlot, showAnchors }) {
         </div>
 
         <div className="nav-right">
-          <div className="nav-right-desktop">
-            <LangToggle />
-          </div>
+          <LangToggle />
           {rightSlot}
           <button className="burger-btn" onClick={() => setOpen((o) => !o)} type="button" aria-label="Menu">
             <span />
@@ -66,9 +64,6 @@ export default function SiteNav({ rightSlot, showAnchors }) {
           <Link href="/como-usar" className="mobile-menu-link" onClick={close}>
             {dict.nav.howToUse}
           </Link>
-          <div className="mobile-menu-lang">
-            <LangToggle />
-          </div>
         </div>
       )}
     </div>
