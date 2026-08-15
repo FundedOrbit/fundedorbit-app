@@ -168,9 +168,10 @@ export default function AccountsPage() {
 
   return (
     <div className="wrap">
-      <SiteNav rightSlot={
-        <Link href="/dashboard" className="btn btn-ghost">{dict.nav.dashboard}</Link>
-      } />
+      <SiteNav
+        showDiscord
+        rightSlot={<Link href="/dashboard" className="btn btn-ghost">{dict.nav.dashboard}</Link>}
+      />
 
       <section style={{ padding: "20px 0 40px" }}>
         <div className="accounts-toolbar">

@@ -157,9 +157,10 @@ export default function DashboardPage() {
 
   return (
     <div className="wrap">
-      <SiteNav rightSlot={
-        <button className="btn btn-ghost" onClick={handleLogout}>{dict.nav.logout}</button>
-      } />
+      <SiteNav
+        showDiscord
+        rightSlot={<button className="btn btn-ghost" onClick={handleLogout}>{dict.nav.logout}</button>}
+      />
 
       <section className="hero" style={{ padding: "40px 10px 20px" }}>
         <h1>

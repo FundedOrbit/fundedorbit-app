@@ -6,7 +6,7 @@ import { useLanguage } from "./LanguageProvider";
 import LangToggle from "./LangToggle";
 import CouponsLink from "./CouponsLink";
 
-export default function SiteNav({ rightSlot, showAnchors }) {
+export default function SiteNav({ rightSlot, showAnchors, showDiscord }) {
   const [open, setOpen] = useState(false);
   const { dict } = useLanguage();
 
@@ -28,6 +28,11 @@ export default function SiteNav({ rightSlot, showAnchors }) {
               <a href="#como-funciona">{dict.nav.howItWorks}</a>
               <a href="#resenas">{dict.nav.reviews}</a>
             </>
+          )}
+          {showDiscord && (
+            <a href="https://discord.gg/37FeZWwkUu" target="_blank" rel="noopener noreferrer">
+              {dict.nav.discord}
+            </a>
           )}
           <CouponsLink>{dict.nav.coupons}</CouponsLink>
           <Link href="/ranking">{dict.ranking.navLabel}</Link>
@@ -56,6 +61,17 @@ export default function SiteNav({ rightSlot, showAnchors }) {
                 {dict.nav.reviews}
               </a>
             </>
+          )}
+          {showDiscord && (
+            <a
+              href="https://discord.gg/37FeZWwkUu"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mobile-menu-link"
+              onClick={close}
+            >
+              {dict.nav.discord}
+            </a>
           )}
           <CouponsLink className="mobile-menu-link">{dict.nav.coupons}</CouponsLink>
           <Link href="/ranking" className="mobile-menu-link" onClick={close}>

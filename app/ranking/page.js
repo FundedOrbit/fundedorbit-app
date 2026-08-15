@@ -101,23 +101,33 @@ export default function RankingPage() {
         <h2 style={{ fontSize: 22, textAlign: "center", marginBottom: 6 }}>{r.companiesTitle}</h2>
         <p className="sub" style={{ marginBottom: 24 }}>{r.companiesSubtitle}</p>
 
-        <div className="rank-table">
-          <div className="rank-blur-wrap">
-            <div className="rank-blurred">
-              <div className="rank-row rank-row-4col rank-head">
-                <span>#</span>
-                <span>{r.colCompanyName}</span>
-                <span>{r.colAvgDaysPay}</span>
-                <span>{r.colTotalCommunityWd}</span>
+        {!checked ? null : !loggedIn ? (
+          <div className="rank-table">
+            <div className="rank-blur-wrap">
+              <div className="rank-blurred">
+                <div className="rank-row rank-row-4col rank-head">
+                  <span>#</span>
+                  <span>{r.colCompanyName}</span>
+                  <span>{r.colAvgDaysPay}</span>
+                  <span>{r.colTotalCommunityWd}</span>
+                </div>
+                {mockCompanyRankings.map(renderCompanyRow)}
               </div>
-              {mockCompanyRankings.map(renderCompanyRow)}
-            </div>
-            <div className="rank-blur-overlay">
-              <div className="rank-blur-title">{r.companiesLockedTitle}</div>
-              <div className="rank-blur-sub">{r.companiesLockedSub}</div>
+              <div className="rank-blur-overlay">
+                <div className="rank-blur-title">{r.companiesLockedTitle}</div>
+                <div className="rank-blur-sub">{r.companiesLockedSub}</div>
+                <Link href="/login" className="btn btn-primary">
+                  {r.joinCta}
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="card" style={{ textAlign: "center", padding: 40 }}>
+            <p style={{ fontWeight: 700, marginBottom: 6 }}>{r.companiesNotEnoughTitle}</p>
+            <p className="sub" style={{ margin: 0 }}>{r.companiesNotEnoughSub}</p>
+          </div>
+        )}
       </section>
 
       <SiteFooter />
