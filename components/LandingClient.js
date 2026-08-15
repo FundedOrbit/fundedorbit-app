@@ -5,6 +5,7 @@ import { useLanguage } from "./LanguageProvider";
 import SiteNav from "./SiteNav";
 import SiteFooter from "./SiteFooter";
 import AuthAwareCta from "./AuthAwareCta";
+import DashboardPreview from "./DashboardPreview";
 
 export default function LandingClient() {
   const { dict } = useLanguage();
@@ -28,6 +29,9 @@ export default function LandingClient() {
           </a>
         </div>
         <div className="hero-note">✓ {d.hero.freeNote}</div>
+
+        <DashboardPreview />
+        <p className="sub" style={{ marginTop: 14, fontSize: 12.5 }}>{d.hero.previewCaption}</p>
       </section>
 
       <section className="section" id="como-funciona">
