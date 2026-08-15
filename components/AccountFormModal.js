@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useLanguage } from "./LanguageProvider";
 import { createAccount, updateAccount } from "../lib/accountsClient";
 
@@ -58,12 +58,25 @@ function emptyForm(account) {
   };
 }
 
-export default function AccountFormModal({ account, userId, onClose, onSaved }) {
+export default function AccountFormModal({ account, userId, allAccounts = [], onClose, onSaved }) {
   const { dict } = useLanguage();
   const a = dict.accounts;
   const [form, setForm] = useState(() => emptyForm(account));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  const companyOptions = useMemo(
+    () => [...new Set(allAccounts.map((x) => (x.company || "").trim()).filter(Boolean))].sort(),
+    [allAccounts]
+  );
+  const accountTypeOptions = useMemo(
+    () => [...new Set(allAccounts.map((x) => (x.account_type || "").trim()).filter(Boolean))].sort(),
+    [allAccounts]
+  );
+  const methodOptions = useMemo(
+    () => [...new Set(allAccounts.map((x) => (x.method || "").trim()).filter(Boolean))].sort(),
+    [allAccounts]
+  );
 
   function set(key, value) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -177,19 +190,28 @@ export default function AccountFormModal({ account, userId, onClose, onSaved }) 
             </div>
             <div className="field">
               <label>{a.fieldCompany}</label>
-              <input value={form.company} onChange={(e) => set("company", e.target.value)} />
+              <input value={form.company} onChange={(e) => set("company", e.target.value)} list="companyList" />
+              <datalist id="companyList">
+                {companyOptions.map((c) => (<option key={c} value={c} />))}
+              </datalist>
             </div>
             <div className="field">
               <label>{a.fieldType}</label>
-              <input value={form.account_type} onChange={(e) => set("account_type", e.target.value)} />
+              <input value={form.account_type} onChange={(e) => set("account_type", e.target.value)} list="accountTypeList" />
+              <datalist id="accountTypeList">
+                {accountTypeOptions.map((t) => (<option key={t} value={t} />))}
+              </datalist>
             </div>
             <div className="field">
               <label>{a.fieldSize}</label>
               <input value={form.size} onChange={(e) => set("size", e.target.value)} />
             </div>
             <div className="field">
-              <label>{a.fieldMethod}</label>
-              <input value={form.method} onChange={(e) => set("method", e.target.value)} />
+              <label>{a.fieldMethodForm}</label>
+              <input value={form.method} onChange={(e) => set("method", e.target.value)} list="methodList" />
+              <datalist id="methodList">
+                {methodOptions.map((m) => (<option key={m} value={m} />))}
+              </datalist>
             </div>
             <div className="field">
               <label>{a.fieldStatus}</label>

@@ -12,6 +12,7 @@ import {
   fetchAccounts,
   deleteAccount,
   accountMetrics,
+  computeTopStats,
   computeAlerts,
   renderAlert,
   computeLifecycle,
@@ -249,17 +250,7 @@ export default function DashboardPage() {
     );
   }
 
-  const totals = accounts.reduce(
-    (acc, row) => {
-      const m = accountMetrics(row);
-      acc.invested += m.invested;
-      acc.withdrawn += m.withdrawn;
-      return acc;
-    },
-    { invested: 0, withdrawn: 0 }
-  );
-  const net = totals.withdrawn - totals.invested;
-  const roi = totals.invested > 0 ? (net / totals.invested) * 100 : 0;
+  const stats = computeTopStats(accounts);
 
   const alerts = computeAlerts(accounts);
   const lifecycle = computeLifecycle(accounts);
@@ -267,6 +258,9 @@ export default function DashboardPage() {
   const monthly = computeMonthly(accounts);
   const maxMonthly = Math.max(1, ...monthly.flatMap((mo) => [mo.invertido, mo.retirado]));
   const timeline = buildTimelineSeries(accounts);
+  const lastNet = timeline.netSeries.length ? timeline.netSeries[timeline.netSeries.length - 1].value : 0;
+  const lastExp = timeline.expenseSeries.length ? timeline.expenseSeries[timeline.expenseSeries.length - 1].value : 0;
+  const lastInc = timeline.incomeSeries.length ? timeline.incomeSeries[timeline.incomeSeries.length - 1].value : 0;
   const topWorst = computeTopWorst(accounts);
   const breakdown = computeBreakdown(accounts);
   const activeWd = computeActiveWithdrawals(accounts);
@@ -395,69 +389,143 @@ export default function DashboardPage() {
                 <div className="kpi-mini-grid">
                   <div className="kpi-card">
                     <div className="label">{a.kpiInvested}</div>
-                    <div className="value">{fmtMoney(totals.invested)}</div>
+                    <div className="value">{fmtMoney(stats.totalInvertido)}</div>
+                    <div className="sub">{a.kpiInvestedSub.replace("{n}", stats.totalCuentas)}</div>
                   </div>
                   <div className="kpi-card">
                     <div className="label">{a.kpiWithdrawn}</div>
-                    <div className="value">{fmtMoney(totals.withdrawn)}</div>
+                    <div className="value">{fmtMoney(stats.totalRetirado)}</div>
+                    <div className="sub">{a.kpiWithdrawnSub}</div>
                   </div>
-                  <div className={`kpi-card ${net >= 0 ? "positive" : "negative"}`}>
+                  <div className={`kpi-card ${stats.netProfit >= 0 ? "positive" : "negative"}`}>
                     <div className="label">{a.kpiNet}</div>
-                    <div className="value">{fmtMoney(net)}</div>
+                    <div className="value">{fmtMoney(stats.netProfit)}</div>
+                    <div className="sub">{a.kpiNetSub}</div>
                   </div>
-                  <div className={`kpi-card ${roi >= 0 ? "positive" : "negative"}`}>
+                  <div className={`kpi-card ${stats.roiGlobal >= 0 ? "positive" : "negative"}`}>
                     <div className="label">{a.kpiRoi}</div>
-                    <div className="value">{roi.toFixed(1)}%</div>
+                    <div className="value">{stats.roiGlobal.toFixed(1)}%</div>
+                    <div className="sub">{a.kpiRoiSub}</div>
+                  </div>
+                  <div className="kpi-card">
+                    <div className="label">{a.kpiApprovalRate}</div>
+                    <div className="value">{stats.tasaAprobacion.toFixed(0)}%</div>
+                    <div className="sub">
+                      {a.kpiApprovalRateSub.replace("{passed}", stats.counts.pasada || 0).replace("{burned}", stats.counts.quemada || 0)}
+                    </div>
+                  </div>
+                  <div className="kpi-card">
+                    <div className="label">{a.kpiAvgCostPerAccount}</div>
+                    <div className="value">{fmtMoney(stats.costoPromedio)}</div>
+                    <div className="sub">{a.kpiAvgCostPerAccountSub}</div>
+                  </div>
+                  <div className="kpi-card">
+                    <div className="label">{a.kpiAvgWithdrawal}</div>
+                    <div className="value">{fmtMoney(stats.retiroPromedio)}</div>
+                    <div className="sub">{a.kpiAvgWithdrawalSub}</div>
+                  </div>
+                  <div className="kpi-card">
+                    <div className="label">{a.kpiResetsSpent}</div>
+                    <div className="value">{fmtMoney(stats.costoReinicios)}</div>
+                    <div className="sub">{a.kpiResetsSpentSub.replace("{n}", stats.numReinicios)}</div>
+                  </div>
+                  <div className="kpi-card">
+                    <div className="label">{a.kpiActivationSpent}</div>
+                    <div className="value">{fmtMoney(stats.costoActivacion)}</div>
+                    <div className="sub">{a.kpiActivationSpentSub}</div>
+                  </div>
+                  <div className="kpi-card">
+                    <div className="label">{a.kpiRecurringSpent}</div>
+                    <div className="value">{fmtMoney(stats.costoRecurrentes)}</div>
+                    <div className="sub">{a.kpiRecurringSpentSub.replace("{n}", stats.numRecurrentes)}</div>
                   </div>
                 </div>
               </section>
 
-              <div className="charts-grid-3">
-                <div className="chart-card">
-                  <h3>{d.chartPnl}</h3>
-                  <LineChartSVG series={timeline.netSeries} color="#a78bfa" />
-                </div>
-                <div className="chart-card">
-                  <h3>{d.chartExpenses}</h3>
-                  <LineChartSVG series={timeline.expenseSeries} color="#f472b6" />
-                </div>
-                <div className="chart-card">
-                  <h3>{d.chartWithdrawals}</h3>
-                  <LineChartSVG series={timeline.incomeSeries} color="#22d3ee" />
-                </div>
-              </div>
-
               <h2 className="section-title">{lc.title}</h2>
               <div className="kpi-mini-grid">
-                <div className="kpi-card">
+                <div className="kpi-card positive">
                   <div className="label">{lc.passed}</div>
                   <div className="value">{lifecycle.pasadas}</div>
+                  <div className="sub">{lc.passedSub.replace("{pct}", lifecycle.pctPasadas.toFixed(0))}</div>
                 </div>
-                <div className="kpi-card">
+                <div className="kpi-card positive">
                   <div className="label">{lc.fundedTotal}</div>
                   <div className="value">{lifecycle.fundedTotal}</div>
+                  <div className="sub">{lc.fundedTotalSub}</div>
                 </div>
                 <div className="kpi-card">
                   <div className="label">{lc.liveCount}</div>
                   <div className="value">{lifecycle.liveCount}</div>
+                  <div className="sub">{lc.liveCountSub}</div>
+                </div>
+                <div className="kpi-card negative">
+                  <div className="label">{lc.burnedCount}</div>
+                  <div className="value">{lifecycle.quemadas}</div>
+                  <div className="sub">{lc.burnedCountSub.replace("{pct}", lifecycle.pctQuemadas.toFixed(0))}</div>
                 </div>
                 <div className="kpi-card">
-                  <div className="label">{lc.burnedNoWithdrawal}</div>
-                  <div className="value">{lifecycle.burnedNoWithdrawal}</div>
+                  <div className="label">{lc.cancelledCount}</div>
+                  <div className="value">{lifecycle.canceladasCount}</div>
+                  <div className="sub">{lc.cancelledCountSub}</div>
                 </div>
                 <div className="kpi-card">
                   <div className="label">{lc.avgDaysToPass}</div>
                   <div className="value">{fmtDays(lifecycle.avgDaysToPass)}</div>
+                  <div className="sub">{lc.avgDaysToPassSub}</div>
                 </div>
                 <div className="kpi-card">
                   <div className="label">{lc.avgDaysToBurn}</div>
                   <div className="value">{fmtDays(lifecycle.avgDaysToBurn)}</div>
+                  <div className="sub">{lc.avgDaysToBurnSub}</div>
                 </div>
                 <div className="kpi-card">
-                  <div className="label">{lc.avgWithdrawals}</div>
-                  <div className="value">
-                    {lifecycle.avgWithdrawalsPerAccount == null ? "—" : lifecycle.avgWithdrawalsPerAccount.toFixed(1)}
+                  <div className="label">{lc.ltv}</div>
+                  <div className="value">{fmtMoney(lifecycle.ltvPromedio)}</div>
+                  <div className="sub">{lc.ltvSub}</div>
+                </div>
+                <div className="kpi-card">
+                  <div className="label">{lc.avgCostBurned}</div>
+                  <div className="value">{fmtMoney(lifecycle.costoPromedioQuemada)}</div>
+                  <div className="sub">{lc.avgCostBurnedSub}</div>
+                </div>
+                <div className={`kpi-card ${lifecycle.burnedNoWithdrawal > 0 ? "negative" : ""}`}>
+                  <div className="label">{lc.burnedNoWithdrawal}</div>
+                  <div className="value">{lifecycle.burnedNoWithdrawal}</div>
+                  <div className="sub">
+                    {lc.burnedNoWithdrawalSub
+                      .replace("{pct}", lifecycle.pctBurnedNoWithdrawal.toFixed(0))
+                      .replace("{n}", lifecycle.fundedTotal)}
                   </div>
+                </div>
+                <div className="kpi-card">
+                  <div className="label">{lc.avgWithdrawalsFinalized}</div>
+                  <div className="value">
+                    {lifecycle.avgWithdrawalsPerAccountFinalized == null
+                      ? "—"
+                      : lifecycle.avgWithdrawalsPerAccountFinalized.toFixed(1)}
+                  </div>
+                  <div className="sub">
+                    {lifecycle.cntFinalizedWithWd
+                      ? lc.avgWithdrawalsFinalizedSubHas.replace("{n}", lifecycle.cntFinalizedWithWd)
+                      : lc.avgWithdrawalsFinalizedSubNone}
+                  </div>
+                </div>
+                <div className="kpi-card">
+                  <div className="label">{lc.avgWithdrawalsAll}</div>
+                  <div className="value">
+                    {lifecycle.avgWithdrawalsPerAccountAll == null ? "—" : lifecycle.avgWithdrawalsPerAccountAll.toFixed(1)}
+                  </div>
+                  <div className="sub">
+                    {lifecycle.cntAllWithWd
+                      ? lc.avgWithdrawalsAllSubHas.replace("{n}", lifecycle.cntAllWithWd)
+                      : lc.avgWithdrawalsAllSubNone}
+                  </div>
+                </div>
+                <div className={`kpi-card ${banned.length > 0 ? "negative" : ""}`}>
+                  <div className="label">{lc.bannedCount}</div>
+                  <div className="value">{banned.length}</div>
+                  <div className="sub">{lc.bannedCountSub.replace("{n}", accounts.length)}</div>
                 </div>
               </div>
 
@@ -465,29 +533,115 @@ export default function DashboardPage() {
               <div className="kpi-mini-grid">
                 <div className="kpi-card">
                   <div className="label">{py.requested}</div>
-                  <div className="value">{fmtMoney(payoutsStats.solicitados)}</div>
+                  <div className="value">{payoutsStats.solicitados}</div>
+                  <div className="sub">{py.requestedSub}</div>
                 </div>
                 <div className="kpi-card">
                   <div className="label">{py.approved}</div>
-                  <div className="value">{fmtMoney(payoutsStats.aprobados)}</div>
+                  <div className="value">{payoutsStats.aprobados}</div>
+                  <div className="sub">{py.approvedSub}</div>
                 </div>
-                <div className="kpi-card">
+                <div className="kpi-card positive">
                   <div className="label">{py.received}</div>
-                  <div className="value">{fmtMoney(payoutsStats.recibidos)}</div>
+                  <div className="value">{payoutsStats.recibidos}</div>
+                  <div className="sub">{py.receivedSub}</div>
                 </div>
-                <div className="kpi-card">
+                <div className={`kpi-card ${payoutsStats.denegados > 0 ? "negative" : ""}`}>
                   <div className="label">{py.denied}</div>
-                  <div className="value">{fmtMoney(payoutsStats.denegados)}</div>
+                  <div className="value">{payoutsStats.denegados}</div>
+                  <div className="sub">{py.deniedSub}</div>
                 </div>
                 <div className="kpi-card">
                   <div className="label">{py.avgDaysToReceive}</div>
                   <div className="value">{fmtDays(payoutsStats.avgDaysToReceive)}</div>
+                  <div className="sub">{py.avgDaysToReceiveSub}</div>
                 </div>
                 <div className="kpi-card">
                   <div className="label">{py.bestCompany}</div>
                   <div className="value" style={{ fontSize: 16 }}>
                     {payoutsStats.bestCompany ? payoutsStats.bestCompany.empresa : "—"}
                   </div>
+                  <div className="sub">
+                    {payoutsStats.bestCompany
+                      ? py.bestCompanySubHas.replace("{days}", payoutsStats.bestCompany.avgDays.toFixed(1))
+                      : py.bestCompanySubNone}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid-2" style={{ marginTop: 30 }}>
+                <div className="card">
+                  <h3>
+                    {py.companyTableTitle}
+                    <span className="h3-sub">{py.companyTableSub}</span>
+                  </h3>
+                  {payoutsStats.companyAvg.length === 0 ? (
+                    <div className="empty-state">{py.companyTableEmpty}</div>
+                  ) : (
+                    <div className="accounts-table-wrap">
+                      <table className="accounts-table">
+                        <thead>
+                          <tr>
+                            <th>{py.colCompany}</th>
+                            <th>{py.colAvgDays}</th>
+                            <th>{py.colReceivedCount}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {payoutsStats.companyAvg.map((c) => (
+                            <tr key={c.empresa}>
+                              <td>{c.empresa}</td>
+                              <td>{c.avgDays.toFixed(1)} {lang === "en" ? "days" : "días"}</td>
+                              <td>{c.cnt}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+                <div className="card">
+                  <h3>
+                    {py.deniedListTitle}
+                    <span className="h3-sub">{py.deniedListSub}</span>
+                  </h3>
+                  {payoutsStats.deniedList.length === 0 ? (
+                    <div className="empty-state">{py.deniedListEmpty}</div>
+                  ) : (
+                    <div className="alerts-list">
+                      {payoutsStats.deniedList.map(({ acc, w }, i) => (
+                        <div className="alert-item" key={i}>
+                          <span className="alert-dot warn" />
+                          <span>
+                            {acc.account_id || "—"} ({acc.company || "—"}) — {fmtMoney(w.amount)}
+                            {w.denialReason ? `: "${w.denialReason}"` : ` ${py.deniedNoReason}`}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <h2 className="section-title">{d.cumulativeSectionTitle}</h2>
+              <div className="charts-grid-3">
+                <div className="chart-card stat-chart-card">
+                  <h3>{d.chartPnl}</h3>
+                  <div className={`big-stat ${lastNet >= 0 ? "pos" : "neg"}`}>{fmtMoney(lastNet)}</div>
+                  <div className="stat-sub">{d.chartPnlSub}</div>
+                  <LineChartSVG series={timeline.netSeries} color="#a78bfa" />
+                </div>
+                <div className="chart-card stat-chart-card">
+                  <h3>{d.chartExpenses}</h3>
+                  <div className="big-stat">{fmtMoney(lastExp)}</div>
+                  <div className="stat-sub">{d.chartExpensesSub}</div>
+                  <LineChartSVG series={timeline.expenseSeries} color="#f472b6" />
+                </div>
+                <div className="chart-card stat-chart-card">
+                  <h3>{d.chartWithdrawals}</h3>
+                  <div className="big-stat">{fmtMoney(lastInc)}</div>
+                  <div className="stat-sub">{d.chartWithdrawalsSub}</div>
+                  <LineChartSVG series={timeline.incomeSeries} color="#22d3ee" />
                 </div>
               </div>
 
@@ -538,62 +692,9 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="grid-2" style={{ marginTop: 30 }}>
+              <div className="grid-3" style={{ marginTop: 30 }}>
                 <div>
-                  <h2 className="section-title" style={{ marginTop: 0 }}>{a.topRoiTitle}</h2>
-                  <div className="accounts-table-wrap">
-                    <table className="accounts-table">
-                      <thead>
-                        <tr>
-                          <th>{a.colId}</th>
-                          <th>{a.colCompany}</th>
-                          <th>{a.colRoi}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {topWorst.top.length === 0 ? (
-                          <tr><td colSpan={3}>—</td></tr>
-                        ) : topWorst.top.map(({ acc, m }) => (
-                          <tr key={acc.id}>
-                            <td>{acc.account_id || "—"}</td>
-                            <td>{acc.company || "—"}</td>
-                            <td className={m.roi >= 0 ? "positive" : "negative"}>{m.roi.toFixed(1)}%</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-                <div>
-                  <h2 className="section-title" style={{ marginTop: 0 }}>{a.worstRoiTitle}</h2>
-                  <div className="accounts-table-wrap">
-                    <table className="accounts-table">
-                      <thead>
-                        <tr>
-                          <th>{a.colId}</th>
-                          <th>{a.colCompany}</th>
-                          <th>{a.colRoi}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {topWorst.worst.length === 0 ? (
-                          <tr><td colSpan={3}>—</td></tr>
-                        ) : topWorst.worst.map(({ acc, m }) => (
-                          <tr key={acc.id}>
-                            <td>{acc.account_id || "—"}</td>
-                            <td>{acc.company || "—"}</td>
-                            <td className={m.roi >= 0 ? "positive" : "negative"}>{m.roi.toFixed(1)}%</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid-2" style={{ marginTop: 30 }}>
-                <div>
-                  <h2 className="section-title" style={{ marginTop: 0 }}>{a.byCompanyTitle}</h2>
+                  <h2 className="section-title" style={{ marginTop: 0 }}>{d.byCompanyTitle}</h2>
                   <div className="accounts-table-wrap">
                     <table className="accounts-table">
                       <thead>
@@ -602,15 +703,19 @@ export default function DashboardPage() {
                           <th>{a.colId}s</th>
                           <th>{a.kpiInvested}</th>
                           <th>{a.kpiWithdrawn}</th>
+                          <th>{a.colRoi}</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {breakdown.byCompany.map((row) => (
+                        {breakdown.byCompany.length === 0 ? (
+                          <tr><td colSpan={5}>{d.noDataInRange}</td></tr>
+                        ) : breakdown.byCompany.map((row) => (
                           <tr key={row.name}>
                             <td>{row.name}</td>
                             <td>{row.cuentas}</td>
                             <td>{fmtMoney(row.invertido)}</td>
                             <td>{fmtMoney(row.retirado)}</td>
+                            <td className={row.roi >= 0 ? "positive" : "negative"}>{row.roi.toFixed(1)}%</td>
                           </tr>
                         ))}
                       </tbody>
@@ -618,7 +723,10 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div>
-                  <h2 className="section-title" style={{ marginTop: 0 }}>{a.byMethodTitle}</h2>
+                  <h2 className="section-title" style={{ marginTop: 0 }}>
+                    {d.byMethodTitle}
+                    <span className="h3-sub">{d.byMethodSub}</span>
+                  </h2>
                   <div className="accounts-table-wrap">
                     <table className="accounts-table">
                       <thead>
@@ -627,15 +735,93 @@ export default function DashboardPage() {
                           <th>{a.colId}s</th>
                           <th>{a.kpiInvested}</th>
                           <th>{a.kpiWithdrawn}</th>
+                          <th>{a.colRoi}</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {breakdown.byMethod.map((row) => (
+                        {breakdown.byMethod.length === 0 ? (
+                          <tr><td colSpan={5}>{d.noDataInRange}</td></tr>
+                        ) : breakdown.byMethod.map((row) => (
                           <tr key={row.name}>
                             <td>{row.name}</td>
                             <td>{row.cuentas}</td>
                             <td>{fmtMoney(row.invertido)}</td>
                             <td>{fmtMoney(row.retirado)}</td>
+                            <td className={row.roi >= 0 ? "positive" : "negative"}>{row.roi.toFixed(1)}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div>
+                  <h2 className="section-title" style={{ marginTop: 0 }}>{al.title}</h2>
+                  <div className="card">
+                    {alerts.length === 0 ? (
+                      <div className="empty-state">{al.none}</div>
+                    ) : (
+                      <div className="alerts-list">
+                        {alerts.map((alert, i) => (
+                          <div className="alert-item" key={i}>
+                            <span className={`alert-dot ${alert.type}`} />
+                            <span>{renderAlert(dict, alert)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid-2" style={{ marginTop: 30 }}>
+                <div>
+                  <h2 className="section-title" style={{ marginTop: 0 }}>{d.topRoiTitle}</h2>
+                  <div className="accounts-table-wrap">
+                    <table className="accounts-table">
+                      <thead>
+                        <tr>
+                          <th>{a.colId}</th>
+                          <th>{a.colCompany}</th>
+                          <th>{a.colRoi}</th>
+                          <th>{d.colNeto}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {topWorst.top.length === 0 ? (
+                          <tr><td colSpan={4}>{d.noDataInRange}</td></tr>
+                        ) : topWorst.top.map(({ acc, m }) => (
+                          <tr key={acc.id}>
+                            <td>{acc.account_id || "—"}</td>
+                            <td>{acc.company || "—"}</td>
+                            <td className={m.roi >= 0 ? "positive" : "negative"}>{m.roi.toFixed(1)}%</td>
+                            <td>{fmtMoney(m.net)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div>
+                  <h2 className="section-title" style={{ marginTop: 0 }}>{d.worstRoiTitle}</h2>
+                  <div className="accounts-table-wrap">
+                    <table className="accounts-table">
+                      <thead>
+                        <tr>
+                          <th>{a.colId}</th>
+                          <th>{a.colCompany}</th>
+                          <th>{d.colNeto}</th>
+                          <th>{a.colRoi}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {topWorst.worst.length === 0 ? (
+                          <tr><td colSpan={4}>{d.noDataInRange}</td></tr>
+                        ) : topWorst.worst.map(({ acc, m }) => (
+                          <tr key={acc.id}>
+                            <td>{acc.account_id || "—"}</td>
+                            <td>{acc.company || "—"}</td>
+                            <td className={m.net >= 0 ? "positive" : "negative"}>{fmtMoney(m.net)}</td>
+                            <td className={m.roi >= 0 ? "positive" : "negative"}>{m.roi.toFixed(1)}%</td>
                           </tr>
                         ))}
                       </tbody>
@@ -644,111 +830,123 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {activeWd.length > 0 && (
-                <>
-                  <h2 className="section-title">{a.activeWithdrawalsTitle}</h2>
-                  <p className="sub" style={{ textAlign: "left", marginBottom: 14 }}>{a.activeWithdrawalsSub}</p>
-                  <div className="accounts-table-wrap">
-                    <table className="accounts-table">
-                      <thead>
-                        <tr>
-                          <th>{a.colId}</th>
-                          <th>{a.colCompany}</th>
-                          <th>{a.colWithdrawalsCount}</th>
-                          <th>{a.kpiWithdrawn}</th>
+              <h2 className="section-title">
+                {d.activeWithdrawalsTitle}
+                <span className="h3-sub">{d.activeWithdrawalsSub}</span>
+              </h2>
+              {activeWd.length === 0 ? (
+                <div className="card" style={{ marginBottom: 16 }}>
+                  <div className="empty-state">{d.activeWithdrawalsEmpty}</div>
+                </div>
+              ) : (
+                <div className="accounts-table-wrap" style={{ marginBottom: 16 }}>
+                  <table className="accounts-table">
+                    <thead>
+                      <tr>
+                        <th>{a.colId}</th>
+                        <th>{a.colCompany}</th>
+                        <th>{a.colSize}</th>
+                        <th>{d.colWithdrawalsCount}</th>
+                        <th>{a.kpiWithdrawn}</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {activeWd.map(({ acc, wdCount, wdTotal }) => (
+                        <tr key={acc.id}>
+                          <td>{acc.account_id || "—"}</td>
+                          <td>{acc.company || "—"}</td>
+                          <td>{acc.size || "—"}</td>
+                          <td>{wdCount}</td>
+                          <td>{fmtMoney(wdTotal)}</td>
+                          <td>
+                            {wdCount >= 3 ? (
+                              <span className="badge quemada">{d.watchBadge}</span>
+                            ) : wdCount >= 1 ? (
+                              <span className="badge activa">{d.inProgressBadge}</span>
+                            ) : null}
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {activeWd.map(({ acc, wdCount, wdTotal }) => (
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              <h2 className="section-title">
+                {d.burnedNoWithdrawalTitle}
+                <span className="h3-sub">{d.burnedNoWithdrawalTableSub}</span>
+              </h2>
+              {burnedNoWd.length === 0 ? (
+                <div className="card" style={{ marginBottom: 16 }}>
+                  <div className="empty-state">{d.burnedNoWithdrawalEmpty}</div>
+                </div>
+              ) : (
+                <div className="accounts-table-wrap" style={{ marginBottom: 16 }}>
+                  <table className="accounts-table">
+                    <thead>
+                      <tr>
+                        <th>{a.colId}</th>
+                        <th>{a.colCompany}</th>
+                        <th>{a.fieldMethod}</th>
+                        <th>{a.fieldPassedDate}</th>
+                        <th>{a.fieldBurnedDate}</th>
+                        <th>{a.kpiInvested}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {burnedNoWd.map((acc) => {
+                        const m = accountMetrics(acc);
+                        return (
                           <tr key={acc.id}>
                             <td>{acc.account_id || "—"}</td>
                             <td>{acc.company || "—"}</td>
-                            <td>{wdCount}</td>
-                            <td>{fmtMoney(wdTotal)}</td>
+                            <td>{acc.method || "—"}</td>
+                            <td>{acc.passed_date || "—"}</td>
+                            <td>{acc.burned_date || "—"}</td>
+                            <td className="negative">{fmtMoney(m.invested)}</td>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               )}
 
-              {burnedNoWd.length > 0 && (
-                <>
-                  <h2 className="section-title">{a.burnedNoWithdrawalTitle}</h2>
-                  <div className="accounts-table-wrap">
-                    <table className="accounts-table">
-                      <thead>
-                        <tr>
-                          <th>{a.colId}</th>
-                          <th>{a.colCompany}</th>
-                          <th>{a.fieldPassedDate}</th>
-                          <th>{a.fieldBurnedDate}</th>
-                          <th>{a.kpiInvested}</th>
+              <h2 className="section-title">
+                {d.bannedTitle}
+                <span className="h3-sub">{d.bannedSub}</span>
+              </h2>
+              {banned.length === 0 ? (
+                <div className="card" style={{ marginBottom: 16 }}>
+                  <div className="empty-state">{d.bannedEmpty}</div>
+                </div>
+              ) : (
+                <div className="accounts-table-wrap" style={{ marginBottom: 16 }}>
+                  <table className="accounts-table">
+                    <thead>
+                      <tr>
+                        <th>{a.colId}</th>
+                        <th>{a.colCompany}</th>
+                        <th>{a.colType}</th>
+                        <th>{d.colBanDate}</th>
+                        <th>{d.colBanReason}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {banned.map((acc) => (
+                        <tr key={acc.id}>
+                          <td>{acc.account_id || "—"}</td>
+                          <td>{acc.company || "—"}</td>
+                          <td>{acc.account_type || "—"}</td>
+                          <td>{acc.ban_date || "—"}</td>
+                          <td>{acc.ban_reason || "—"}</td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {burnedNoWd.map((acc) => {
-                          const m = accountMetrics(acc);
-                          return (
-                            <tr key={acc.id}>
-                              <td>{acc.account_id || "—"}</td>
-                              <td>{acc.company || "—"}</td>
-                              <td>{acc.passed_date || "—"}</td>
-                              <td>{acc.burned_date || "—"}</td>
-                              <td className="negative">{fmtMoney(m.invested)}</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
-
-              {banned.length > 0 && (
-                <>
-                  <h2 className="section-title">{a.bannedTitle}</h2>
-                  <div className="accounts-table-wrap">
-                    <table className="accounts-table">
-                      <thead>
-                        <tr>
-                          <th>{a.colId}</th>
-                          <th>{a.colCompany}</th>
-                          <th>{a.colBanDate}</th>
-                          <th>{a.colBanReason}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {banned.map((acc) => (
-                          <tr key={acc.id}>
-                            <td>{acc.account_id || "—"}</td>
-                            <td>{acc.company || "—"}</td>
-                            <td>{acc.ban_date || "—"}</td>
-                            <td>{acc.ban_reason || "—"}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </>
-              )}
-
-              <h2 className="section-title">{al.title}</h2>
-              <div className="card">
-                {alerts.length === 0 ? (
-                  <div className="empty-state">{al.none}</div>
-                ) : (
-                  <div className="alerts-list">
-                    {alerts.map((alert, i) => (
-                      <div className="alert-item" key={i}>
-                        <span className={`alert-dot ${alert.type}`} />
-                        <span>{renderAlert(dict, alert)}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
             </>
           )}
         </>
@@ -814,12 +1012,21 @@ export default function DashboardPage() {
                         const m = accountMetrics(acc);
                         return (
                           <tr key={acc.id}>
-                            <td>{acc.account_id || "—"}</td>
+                            <td>
+                              {acc.account_id || "—"}
+                              {acc.cancelled && (
+                                <span className="badge cancelada" style={{ marginLeft: 6 }}>
+                                  {a.cancelledBadge}
+                                </span>
+                              )}
+                            </td>
                             <td>{acc.company || "—"}</td>
                             <td>{acc.account_type || "—"}</td>
                             <td>{acc.size || "—"}</td>
                             <td>
-                              <span className="badge">{a[`status${acc.status.charAt(0).toUpperCase() + acc.status.slice(1)}`]}</span>
+                              <span className={`badge ${acc.status}`}>
+                                {a[`status${acc.status.charAt(0).toUpperCase() + acc.status.slice(1)}`]}
+                              </span>
                             </td>
                             <td>{acc.purchase_date || "—"}</td>
                             <td>{fmtMoney(m.invested)}</td>
@@ -854,6 +1061,7 @@ export default function DashboardPage() {
         <AccountFormModal
           account={editing}
           userId={userId}
+          allAccounts={allAccounts}
           onClose={() => {
             setShowForm(false);
             setEditing(null);
