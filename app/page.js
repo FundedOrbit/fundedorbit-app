@@ -1,60 +1,13 @@
+"use client";
+
 import Link from "next/link";
-
-const features = [
-  {
-    icon: "📊",
-    title: "Tus números, claros",
-    text: "Invertido, retirado, ROI real y neto por cuenta — calculado solo con pagos efectivamente recibidos, sin adornos.",
-  },
-  {
-    icon: "🛰️",
-    title: "Todo el ciclo de vida",
-    text: "Desde evaluación hasta fondeada, pagada, quemada o baneada. Un panel, todas tus cuentas de todas las prop firms.",
-  },
-  {
-    icon: "🔔",
-    title: "Alertas inteligentes",
-    text: "Te avisamos cuando una cuenta lleva muchos retiros, cuándo se acerca su próximo cobro mensual, y más.",
-  },
-  {
-    icon: "🏆",
-    title: "Rankings",
-    text: "Compite en ROI, retiros totales y descubre qué prop firms pagan mejor y más rápido, según la comunidad.",
-  },
-  {
-    icon: "🎟️",
-    title: "Cupones y brokers",
-    text: "Descuentos exclusivos para abrir cuentas nuevas y links a brokers recomendados, todo en un solo lugar.",
-  },
-  {
-    icon: "🌐",
-    title: "Comunidad",
-    text: "Súmate al Discord de FundedOrbit y comparte con otros traders fondeados que buscan profesionalizarse.",
-  },
-];
-
-const reviews = [
-  {
-    name: "Carlos M.",
-    role: "Trader fondeado, 6 cuentas activas",
-    text: "Antes llevaba todo en Excel y perdía el hilo de cuántos retiros llevaba cada cuenta. Con FundedOrbit sé exactamente cuándo quemar una cuenta antes de que pase a Live.",
-    stars: 5,
-  },
-  {
-    name: "Daniela R.",
-    role: "Trader fondeada",
-    text: "La parte de ROI real me abrió los ojos — varias cuentas que creía rentables en realidad no lo eran una vez que restas resets y activaciones.",
-    stars: 5,
-  },
-  {
-    name: "Iván T.",
-    role: "Trader fondeado, cuentas recurrentes",
-    text: "Las alertas de cobro mensual me han salvado de pagar membresías de más de una vez. Es justo lo que faltaba en este negocio.",
-    stars: 4,
-  },
-];
+import { useLanguage } from "../components/LanguageProvider";
+import LangToggle from "../components/LangToggle";
 
 export default function LandingPage() {
+  const { dict } = useLanguage();
+  const d = dict;
+
   return (
     <div className="wrap">
       <nav className="nav">
@@ -63,39 +16,39 @@ export default function LandingPage() {
           FundedOrbit
         </div>
         <div className="nav-links">
-          <span>Cómo funciona</span>
-          <span>Reseñas</span>
-          <span>Cupones</span>
+          <a href="#como-funciona">{d.nav.howItWorks}</a>
+          <a href="#resenas">{d.nav.reviews}</a>
+          <span>{d.nav.coupons}</span>
+          <Link href="/como-usar">{d.nav.howToUse}</Link>
         </div>
-        <Link href="/login" className="btn btn-primary">
-          Entrar / Crear cuenta
-        </Link>
+        <div className="nav-right">
+          <LangToggle />
+          <Link href="/login" className="btn btn-primary">
+            {d.nav.login}
+          </Link>
+        </div>
       </nav>
 
       <section className="hero">
         <h1>
-          Profesionaliza tu trading <span>fondeado</span>
+          {d.hero.title1} <span>{d.hero.titleHighlight}</span>
         </h1>
-        <p>
-          El centro de mando para traders con cuentas fondeadas: entiende tus números reales,
-          gestiona el ciclo completo de cada cuenta y toma mejores decisiones. Hasta hoy no
-          existía un panel así de completo — por eso construimos FundedOrbit.
-        </p>
+        <p>{d.hero.subtitle}</p>
         <div className="hero-actions">
           <Link href="/login" className="btn btn-primary">
-            Empezar gratis
+            {d.hero.ctaStart}
           </Link>
           <a href="#como-funciona" className="btn btn-ghost">
-            Ver cómo funciona
+            {d.hero.ctaHow}
           </a>
         </div>
       </section>
 
       <section className="section" id="como-funciona">
-        <h2>Todo lo que necesitas en un solo lugar</h2>
-        <p className="sub">Construido por y para traders fondeados.</p>
+        <h2>{d.featuresTitle}</h2>
+        <p className="sub">{d.featuresSub}</p>
         <div className="grid-3">
-          {features.map((f) => (
+          {d.features.map((f) => (
             <div className="card" key={f.title}>
               <div className="icon-badge">{f.icon}</div>
               <h3>{f.title}</h3>
@@ -106,12 +59,15 @@ export default function LandingPage() {
       </section>
 
       <section className="section" id="resenas">
-        <h2>Lo que dicen los traders</h2>
-        <p className="sub">Primeros usuarios de FundedOrbit.</p>
+        <h2>{d.reviewsTitle}</h2>
+        <p className="sub">{d.reviewsSub}</p>
         <div className="grid-3">
-          {reviews.map((r) => (
+          {d.reviews.map((r) => (
             <div className="review-card" key={r.name}>
-              <div className="stars-row">{"★".repeat(r.stars)}{"☆".repeat(5 - r.stars)}</div>
+              <div className="stars-row">
+                {"★".repeat(r.stars)}
+                {"☆".repeat(5 - r.stars)}
+              </div>
               <p>&ldquo;{r.text}&rdquo;</p>
               <div className="review-author">{r.name}</div>
               <div className="review-role">{r.role}</div>
@@ -122,15 +78,17 @@ export default function LandingPage() {
 
       <section className="section">
         <div className="cta-card">
-          <h2>Empieza a profesionalizar tus cuentas fondeadas</h2>
-          <p>Gratis para empezar. Sin tarjeta de crédito.</p>
+          <h2>{d.ctaCard.title}</h2>
+          <p>{d.ctaCard.sub}</p>
           <Link href="/login" className="btn btn-primary">
-            Crear mi cuenta
+            {d.ctaCard.button}
           </Link>
         </div>
       </section>
 
-      <div className="footer-note">FundedOrbit © {new Date().getFullYear()} — fundedorbit.com</div>
+      <div className="footer-note">
+        {d.footerNote.replace("{year}", String(new Date().getFullYear()))}
+      </div>
     </div>
   );
 }

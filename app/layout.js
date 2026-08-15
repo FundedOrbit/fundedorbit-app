@@ -1,9 +1,10 @@
 import "./globals.css";
+import { LanguageProvider } from "../components/LanguageProvider";
 
 export const metadata = {
-  title: "FundedOrbit — Profesionaliza tu trading fondeado",
+  title: "FundedOrbit — Profesionaliza tu trading de fondeo",
   description:
-    "El panel que ayuda a traders fondeados a entender sus números y tomar mejores decisiones sobre sus cuentas.",
+    "El panel que ayuda a traders de fondeo a entender sus números y tomar mejores decisiones sobre sus cuentas.",
 };
 
 export default function RootLayout({ children }) {
@@ -11,7 +12,7 @@ export default function RootLayout({ children }) {
     <html lang="es">
       <body>
         <div className="stars" />
-        {children}
+        <LanguageProvider>{children}</LanguageProvider>
       </body>
     </html>
   );

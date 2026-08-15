@@ -3,9 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabaseClient";
+import { useLanguage } from "../../components/LanguageProvider";
+import LangToggle from "../../components/LangToggle";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { dict } = useLanguage();
+  const d = dict.login;
   const [mode, setMode] = useState("login"); // "login" | "signup"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,7 +36,7 @@ export default function LoginPage() {
       if (data.session) {
         router.push("/onboarding");
       } else {
-        setInfo("Revisa tu correo para confirmar tu cuenta antes de entrar.");
+        setInfo(d.confirmEmailMsg);
       }
       return;
     }
@@ -65,10 +69,13 @@ export default function LoginPage() {
 
   return (
     <div className="auth-wrap">
+      <div style={{ position: "fixed", top: 20, right: 20 }}>
+        <LangToggle />
+      </div>
       <div className="auth-card">
         <div className="brand" style={{ marginBottom: 22, justifyContent: "center" }}>
           <span className="dot" />
-          FundedOrbit
+          {d.brand}
         </div>
 
         <div className="auth-tabs">
@@ -76,13 +83,13 @@ export default function LoginPage() {
             className={`auth-tab ${mode === "login" ? "active" : ""}`}
             onClick={() => setMode("login")}
           >
-            Entrar
+            {d.tabLogin}
           </div>
           <div
             className={`auth-tab ${mode === "signup" ? "active" : ""}`}
             onClick={() => setMode("signup")}
           >
-            Crear cuenta
+            {d.tabSignup}
           </div>
         </div>
 
@@ -91,35 +98,35 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit}>
           <div className="field">
-            <label>Correo</label>
+            <label>{d.email}</label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="tucorreo@ejemplo.com"
+              placeholder={d.emailPlaceholder}
             />
           </div>
           <div className="field">
-            <label>Contraseña</label>
+            <label>{d.password}</label>
             <input
               type="password"
               required
               minLength={6}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Mínimo 6 caracteres"
+              placeholder={d.passwordPlaceholder}
             />
           </div>
           <button className="btn btn-primary btn-block" type="submit" disabled={loading}>
-            {loading ? "Un momento..." : mode === "signup" ? "Crear cuenta" : "Entrar"}
+            {loading ? d.submitLoading : mode === "signup" ? d.submitSignup : d.submitLogin}
           </button>
         </form>
 
-        <div className="divider">o</div>
+        <div className="divider">{d.or}</div>
 
         <button className="btn btn-ghost btn-block" onClick={handleGoogle} type="button">
-          Continuar con Google
+          {d.google}
         </button>
       </div>
     </div>

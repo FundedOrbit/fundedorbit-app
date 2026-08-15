@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabaseClient";
+import { useLanguage } from "../../components/LanguageProvider";
+import LangToggle from "../../components/LangToggle";
 
 const AVATARS = ["🚀", "🛰️", "🪐", "🌙", "⭐", "☄️", "🌌", "🔭", "👨‍🚀", "👩‍🚀"];
 
@@ -23,6 +25,8 @@ const COUNTRIES = [
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { dict } = useLanguage();
+  const d = dict.onboarding;
   const [nickname, setNickname] = useState("");
   const [avatar, setAvatar] = useState(AVATARS[0]);
   const [country, setCountry] = useState(COUNTRIES[0].name);
@@ -48,7 +52,7 @@ export default function OnboardingPage() {
     e.preventDefault();
     setError("");
     if (!nickname.trim()) {
-      setError("Elige un nickname.");
+      setError(d.errorNickname);
       return;
     }
     setLoading(true);
@@ -75,35 +79,38 @@ export default function OnboardingPage() {
   }
 
   if (checking) {
-    return <div className="auth-wrap">Cargando...</div>;
+    return <div className="auth-wrap">{d.loading}</div>;
   }
 
   return (
     <div className="auth-wrap">
+      <div style={{ position: "fixed", top: 20, right: 20 }}>
+        <LangToggle />
+      </div>
       <div className="auth-card">
         <div className="brand" style={{ marginBottom: 6, justifyContent: "center" }}>
           <span className="dot" />
           FundedOrbit
         </div>
         <p style={{ textAlign: "center", color: "var(--text-muted)", fontSize: 13, marginBottom: 22 }}>
-          Últimos datos para tu perfil
+          {d.subtitle}
         </p>
 
         {error && <div className="msg err">{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="field">
-            <label>Nickname</label>
+            <label>{d.nickname}</label>
             <input
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
-              placeholder="Como te verán en los rankings"
+              placeholder={d.nicknamePlaceholder}
               maxLength={24}
             />
           </div>
 
           <div className="field">
-            <label>Avatar</label>
+            <label>{d.avatar}</label>
             <div className="avatar-grid">
               {AVATARS.map((a) => (
                 <div
@@ -118,7 +125,7 @@ export default function OnboardingPage() {
           </div>
 
           <div className="field">
-            <label>País</label>
+            <label>{d.country}</label>
             <select value={country} onChange={(e) => setCountry(e.target.value)}>
               {COUNTRIES.map((c) => (
                 <option key={c.code} value={c.name}>
@@ -129,7 +136,7 @@ export default function OnboardingPage() {
           </div>
 
           <button className="btn btn-primary btn-block" type="submit" disabled={loading}>
-            {loading ? "Guardando..." : "Terminar y entrar"}
+            {loading ? d.submitLoading : d.submit}
           </button>
         </form>
       </div>

@@ -1,11 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabaseClient";
+import { useLanguage } from "../../components/LanguageProvider";
+import LangToggle from "../../components/LangToggle";
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { dict } = useLanguage();
+  const d = dict.dashboard;
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -40,7 +45,7 @@ export default function DashboardPage() {
   }
 
   if (loading) {
-    return <div className="auth-wrap">Cargando...</div>;
+    return <div className="auth-wrap">{d.loading}</div>;
   }
 
   return (
@@ -50,20 +55,22 @@ export default function DashboardPage() {
           <span className="dot" />
           FundedOrbit
         </div>
-        <button className="btn btn-ghost" onClick={handleLogout}>
-          Cerrar sesión
-        </button>
+        <div className="nav-right">
+          <Link href="/como-usar" className="btn btn-ghost">
+            {dict.nav.howToUse}
+          </Link>
+          <LangToggle />
+          <button className="btn btn-ghost" onClick={handleLogout}>
+            {dict.nav.logout}
+          </button>
+        </div>
       </nav>
 
       <section className="hero" style={{ padding: "60px 10px" }}>
         <h1>
-          {profile?.avatar} Bienvenido, <span>{profile?.nickname}</span>
+          {profile?.avatar} {d.welcome} <span>{profile?.nickname}</span>
         </h1>
-        <p>
-          Tu cuenta está lista. El panel completo de cuentas fondeadas (el mismo que ya usas
-          en tu versión local) se está migrando aquí — muy pronto vas a poder registrar y
-          gestionar tus cuentas fondeadas desde fundedorbit.com.
-        </p>
+        <p>{d.placeholder}</p>
       </section>
     </div>
   );
