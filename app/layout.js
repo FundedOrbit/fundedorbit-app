@@ -1,6 +1,11 @@
 import "./globals.css";
 import { LanguageProvider } from "../components/LanguageProvider";
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
+
 export const metadata = {
   metadataBase: new URL("https://fundedorbit.com"),
   title: {
