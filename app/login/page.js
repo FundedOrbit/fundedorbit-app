@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabaseClient";
 import { useLanguage } from "../../components/LanguageProvider";
@@ -16,6 +16,22 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
+  const [checkingSession, setCheckingSession] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!active) return;
+      if (session) {
+        router.replace("/dashboard");
+      } else {
+        setCheckingSession(false);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [router]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -57,6 +73,10 @@ export default function LoginPage() {
       return;
     }
     router.push("/dashboard");
+  }
+
+  if (checkingSession) {
+    return <div className="auth-wrap" />;
   }
 
   return (

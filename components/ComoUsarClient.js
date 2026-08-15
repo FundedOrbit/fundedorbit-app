@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useLanguage } from "./LanguageProvider";
 import SiteNav from "./SiteNav";
 import SiteFooter from "./SiteFooter";
+import AuthAwareCta from "./AuthAwareCta";
 
 export default function ComoUsarClient() {
   const { dict } = useLanguage();
@@ -11,9 +12,7 @@ export default function ComoUsarClient() {
 
   return (
     <div className="wrap">
-      <SiteNav rightSlot={
-        <Link href="/login" className="btn btn-primary">{dict.nav.login}</Link>
-      } />
+      <SiteNav rightSlot={<AuthAwareCta />} />
 
       <section className="hero" style={{ padding: "50px 10px 10px" }}>
         <h1>{g.title}</h1>

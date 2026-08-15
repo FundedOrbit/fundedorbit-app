@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useLanguage } from "./LanguageProvider";
 import SiteNav from "./SiteNav";
 import SiteFooter from "./SiteFooter";
+import AuthAwareCta from "./AuthAwareCta";
 
 export default function LandingClient() {
   const { dict } = useLanguage();
@@ -11,9 +12,7 @@ export default function LandingClient() {
 
   return (
     <div className="wrap">
-      <SiteNav showAnchors rightSlot={
-        <Link href="/login" className="btn btn-primary">{d.nav.login}</Link>
-      } />
+      <SiteNav showAnchors rightSlot={<AuthAwareCta />} />
 
       <section className="hero">
         <h1>
