@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useLanguage } from "../components/LanguageProvider";
-import LangToggle from "../components/LangToggle";
-import CouponsLink from "../components/CouponsLink";
+import SiteNav from "../components/SiteNav";
+import SiteFooter from "../components/SiteFooter";
 
 export default function LandingPage() {
   const { dict } = useLanguage();
@@ -11,25 +11,9 @@ export default function LandingPage() {
 
   return (
     <div className="wrap">
-      <nav className="nav">
-        <div className="brand">
-          <span className="dot" />
-          FundedOrbit
-        </div>
-        <div className="nav-links">
-          <a href="#como-funciona">{d.nav.howItWorks}</a>
-          <a href="#resenas">{d.nav.reviews}</a>
-          <CouponsLink>{d.nav.coupons}</CouponsLink>
-          <Link href="/ranking">{d.ranking.navLabel}</Link>
-          <Link href="/como-usar">{d.nav.howToUse}</Link>
-        </div>
-        <div className="nav-right">
-          <LangToggle />
-          <Link href="/login" className="btn btn-primary">
-            {d.nav.login}
-          </Link>
-        </div>
-      </nav>
+      <SiteNav showAnchors rightSlot={
+        <Link href="/login" className="btn btn-primary">{d.nav.login}</Link>
+      } />
 
       <section className="hero">
         <h1>
@@ -44,6 +28,7 @@ export default function LandingPage() {
             {d.hero.ctaHow}
           </a>
         </div>
+        <div className="hero-note">✓ {d.hero.freeNote}</div>
       </section>
 
       <section className="section" id="como-funciona">
@@ -88,9 +73,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <div className="footer-note">
-        {d.footerNote.replace("{year}", String(new Date().getFullYear()))}
-      </div>
+      <SiteFooter />
     </div>
   );
 }

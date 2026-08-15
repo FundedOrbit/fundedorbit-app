@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useLanguage } from "../../components/LanguageProvider";
-import LangToggle from "../../components/LangToggle";
+import SiteNav from "../../components/SiteNav";
+import SiteFooter from "../../components/SiteFooter";
 
 export default function ComoUsarPage() {
   const { dict } = useLanguage();
@@ -10,18 +11,9 @@ export default function ComoUsarPage() {
 
   return (
     <div className="wrap">
-      <nav className="nav">
-        <Link href="/" className="brand">
-          <span className="dot" />
-          FundedOrbit
-        </Link>
-        <div className="nav-right">
-          <LangToggle />
-          <Link href="/login" className="btn btn-primary">
-            {dict.nav.login}
-          </Link>
-        </div>
-      </nav>
+      <SiteNav rightSlot={
+        <Link href="/login" className="btn btn-primary">{dict.nav.login}</Link>
+      } />
 
       <section className="hero" style={{ padding: "50px 10px 10px" }}>
         <h1>{g.title}</h1>
@@ -47,9 +39,7 @@ export default function ComoUsarPage() {
         </div>
       </section>
 
-      <div className="footer-note">
-        {dict.footerNote.replace("{year}", String(new Date().getFullYear()))}
-      </div>
+      <SiteFooter />
     </div>
   );
 }
