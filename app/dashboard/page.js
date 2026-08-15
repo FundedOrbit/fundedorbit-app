@@ -442,6 +442,22 @@ export default function DashboardPage() {
                 </div>
               </section>
 
+              <h2 className="section-title">{al.title}</h2>
+              <div className="card" style={{ marginBottom: 10 }}>
+                {alerts.length === 0 ? (
+                  <div className="empty-state">{al.none}</div>
+                ) : (
+                  <div className="alerts-list">
+                    {alerts.map((alert, i) => (
+                      <div className="alert-item" key={i}>
+                        <span className={`alert-dot ${alert.type}`} />
+                        <span>{renderAlert(dict, alert)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <h2 className="section-title">{lc.title}</h2>
               <div className="kpi-mini-grid">
                 <div className="kpi-card positive">
@@ -692,7 +708,7 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="grid-3" style={{ marginTop: 30 }}>
+              <div className="grid-2" style={{ marginTop: 30 }}>
                 <div>
                   <h2 className="section-title" style={{ marginTop: 0 }}>{d.byCompanyTitle}</h2>
                   <div className="accounts-table-wrap">
@@ -752,23 +768,6 @@ export default function DashboardPage() {
                         ))}
                       </tbody>
                     </table>
-                  </div>
-                </div>
-                <div>
-                  <h2 className="section-title" style={{ marginTop: 0 }}>{al.title}</h2>
-                  <div className="card">
-                    {alerts.length === 0 ? (
-                      <div className="empty-state">{al.none}</div>
-                    ) : (
-                      <div className="alerts-list">
-                        {alerts.map((alert, i) => (
-                          <div className="alert-item" key={i}>
-                            <span className={`alert-dot ${alert.type}`} />
-                            <span>{renderAlert(dict, alert)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
