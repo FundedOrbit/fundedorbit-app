@@ -190,25 +190,25 @@ export default function AccountFormModal({ account, userId, allAccounts = [], on
             </div>
             <div className="field">
               <label>{a.fieldCompany}</label>
-              <input value={form.company} onChange={(e) => set("company", e.target.value)} list="companyList" />
+              <input value={form.company} onChange={(e) => set("company", e.target.value)} list="companyList" placeholder={a.fieldCompanyPlaceholder} />
               <datalist id="companyList">
                 {companyOptions.map((c) => (<option key={c} value={c} />))}
               </datalist>
             </div>
             <div className="field">
               <label>{a.fieldType}</label>
-              <input value={form.account_type} onChange={(e) => set("account_type", e.target.value)} list="accountTypeList" />
+              <input value={form.account_type} onChange={(e) => set("account_type", e.target.value)} list="accountTypeList" placeholder={a.fieldTypePlaceholder} />
               <datalist id="accountTypeList">
                 {accountTypeOptions.map((t) => (<option key={t} value={t} />))}
               </datalist>
             </div>
             <div className="field">
               <label>{a.fieldSize}</label>
-              <input value={form.size} onChange={(e) => set("size", e.target.value)} />
+              <input value={form.size} onChange={(e) => set("size", e.target.value)} placeholder={a.fieldSizePlaceholder} />
             </div>
             <div className="field">
               <label>{a.fieldMethodForm}</label>
-              <input value={form.method} onChange={(e) => set("method", e.target.value)} list="methodList" />
+              <input value={form.method} onChange={(e) => set("method", e.target.value)} list="methodList" placeholder={a.fieldMethodPlaceholder} />
               <datalist id="methodList">
                 {methodOptions.map((m) => (<option key={m} value={m} />))}
               </datalist>
@@ -233,7 +233,7 @@ export default function AccountFormModal({ account, userId, allAccounts = [], on
             </div>
             <div className="field">
               <label>{a.fieldActivationFee}</label>
-              <input type="number" step="0.01" value={form.activation_fee} onChange={(e) => set("activation_fee", e.target.value)} />
+              <input type="number" step="0.01" value={form.activation_fee} onChange={(e) => set("activation_fee", e.target.value)} placeholder={a.fieldActivationFeePlaceholder} />
             </div>
             <div className="field">
               <label>{a.fieldPassedDate}</label>
@@ -250,6 +250,8 @@ export default function AccountFormModal({ account, userId, allAccounts = [], on
             {a.fieldRecurring}
           </label>
 
+          <p className="field-help">{a.statusHelp}</p>
+
           <label className="checkbox-field">
             <input type="checkbox" checked={form.banned} onChange={(e) => set("banned", e.target.checked)} />
             {a.fieldBanned}
@@ -262,7 +264,7 @@ export default function AccountFormModal({ account, userId, allAccounts = [], on
               </div>
               <div className="field">
                 <label>{a.fieldBanReason}</label>
-                <input value={form.ban_reason} onChange={(e) => set("ban_reason", e.target.value)} />
+                <input value={form.ban_reason} onChange={(e) => set("ban_reason", e.target.value)} placeholder={a.fieldBanReasonPlaceholder} />
               </div>
             </div>
           )}
@@ -280,7 +282,7 @@ export default function AccountFormModal({ account, userId, allAccounts = [], on
 
           <div className="field">
             <label>{a.fieldNotes}</label>
-            <input value={form.notes} onChange={(e) => set("notes", e.target.value)} />
+            <input value={form.notes} onChange={(e) => set("notes", e.target.value)} placeholder={a.fieldNotesPlaceholder} />
           </div>
 
           <div className="section-label">{a.resetsTitle}</div>
@@ -301,7 +303,11 @@ export default function AccountFormModal({ account, userId, allAccounts = [], on
           ))}
           <button type="button" className="add-row-btn" onClick={addReset}>{a.addReset}</button>
 
-          <div className="section-label">{a.extraIdsTitle}</div>
+          <div className="section-label">
+            {a.extraIdsTitle}
+            <button type="button" className="add-row-btn" onClick={addExtraId}>{a.addExtraId}</button>
+          </div>
+          <p className="field-help" style={{ margin: "-2px 0 8px" }}>{a.extraIdsHelp}</p>
           {form.extraIds.map((x, i) => (
             <div className="dyn-block" key={i}>
               <button type="button" className="dyn-remove" onClick={() => removeExtraId(i)}>✕</button>
@@ -317,7 +323,6 @@ export default function AccountFormModal({ account, userId, allAccounts = [], on
               </div>
             </div>
           ))}
-          <button type="button" className="add-row-btn" onClick={addExtraId}>{a.addExtraId}</button>
 
           <div className="section-label">{a.withdrawalsTitle}</div>
           {form.withdrawals.map((w, i) => (
