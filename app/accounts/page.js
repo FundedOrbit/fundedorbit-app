@@ -16,11 +16,12 @@ function fmtMoney(n) {
 
 export default function AccountsPage() {
   const router = useRouter();
-  const { dict } = useLanguage();
+  const { dict, lang } = useLanguage();
   const a = dict.accounts;
   const [userId, setUserId] = useState(null);
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
   const [search, setSearch] = useState("");
@@ -30,17 +31,23 @@ export default function AccountsPage() {
 
   useEffect(() => {
     async function load() {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session) {
-        router.push("/login");
-        return;
+      setLoadError(null);
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!session) {
+          router.push("/login");
+          return;
+        }
+        setUserId(session.user.id);
+        const rows = await fetchAccounts(session.user.id);
+        setAccounts(rows);
+      } catch (err) {
+        setLoadError(err?.message || String(err));
+      } finally {
+        setLoading(false);
       }
-      setUserId(session.user.id);
-      const rows = await fetchAccounts(session.user.id);
-      setAccounts(rows);
-      setLoading(false);
     }
     load();
   }, [router]);
@@ -147,6 +154,22 @@ export default function AccountsPage() {
 
   if (loading) {
     return <div className="auth-wrap">{a.loading}</div>;
+  }
+
+  if (loadError) {
+    return (
+      <div className="auth-wrap">
+        <div className="card" style={{ maxWidth: 480, textAlign: "center" }}>
+          <p style={{ fontWeight: 700, marginBottom: 8 }}>
+            {lang === "en" ? "We couldn't load your accounts" : "No pudimos cargar tus cuentas"}
+          </p>
+          <p className="sub" style={{ marginBottom: 16 }}>{loadError}</p>
+          <button className="btn btn-primary" onClick={() => window.location.reload()}>
+            {lang === "en" ? "Try again" : "Reintentar"}
+          </button>
+        </div>
+      </div>
+    );
   }
 
   const companyOptions = [...new Set(accounts.map((x) => (x.company || "").trim()).filter(Boolean))].sort();

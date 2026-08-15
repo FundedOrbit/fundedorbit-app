@@ -1,45 +1,20 @@
-"use client";
+import ComoUsarClient from "../../components/ComoUsarClient";
 
-import Link from "next/link";
-import { useLanguage } from "../../components/LanguageProvider";
-import SiteNav from "../../components/SiteNav";
-import SiteFooter from "../../components/SiteFooter";
+export const metadata = {
+  title: "Cómo usar",
+  description:
+    "Guía completa de FundedOrbit: qué significa cada campo de tu cuenta fondeada, cómo funcionan las alertas automáticas, el cobro recurrente, los retiros y el dashboard.",
+  alternates: { canonical: "https://fundedorbit.com/como-usar" },
+  openGraph: {
+    title: "Cómo usar FundedOrbit",
+    description:
+      "Guía completa de FundedOrbit: qué significa cada campo de tu cuenta fondeada y cómo sacarle provecho al panel.",
+    url: "https://fundedorbit.com/como-usar",
+    siteName: "FundedOrbit",
+    type: "website",
+  },
+};
 
-export default function ComoUsarPage() {
-  const { dict } = useLanguage();
-  const g = dict.comoUsar;
-
-  return (
-    <div className="wrap">
-      <SiteNav rightSlot={
-        <Link href="/login" className="btn btn-primary">{dict.nav.login}</Link>
-      } />
-
-      <section className="hero" style={{ padding: "50px 10px 10px" }}>
-        <h1>{g.title}</h1>
-      </section>
-      <p className="guide-intro">{g.intro}</p>
-
-      <section className="section" style={{ maxWidth: 760, margin: "0 auto", paddingTop: 0 }}>
-        {g.sections.map((s) => (
-          <div className="guide-section" key={s.heading}>
-            <h3>{s.heading}</h3>
-            <p>{s.body}</p>
-          </div>
-        ))}
-      </section>
-
-      <section className="section">
-        <div className="cta-card">
-          <h2>{dict.ctaCard.title}</h2>
-          <p>{dict.ctaCard.sub}</p>
-          <Link href="/login" className="btn btn-primary">
-            {dict.ctaCard.button}
-          </Link>
-        </div>
-      </section>
-
-      <SiteFooter />
-    </div>
-  );
+export default function Page() {
+  return <ComoUsarClient />;
 }

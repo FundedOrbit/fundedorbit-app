@@ -58,7 +58,7 @@ function buildDonutGradient(counts, order) {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { dict } = useLanguage();
+  const { dict, lang } = useLanguage();
   const d = dict.dashboard;
   const a = dict.accounts;
   const al = dict.alerts;
@@ -68,6 +68,7 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState(null);
   const [allAccounts, setAllAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
 
   const [datePreset, setDatePreset] = useState("all");
   const [customFrom, setCustomFrom] = useState("");
@@ -75,27 +76,33 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function load() {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session) {
-        router.push("/login");
-        return;
-      }
-      const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", session.user.id)
-        .single();
+      setLoadError(null);
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!session) {
+          router.push("/login");
+          return;
+        }
+        const { data } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", session.user.id)
+          .single();
 
-      if (data && !data.nickname) {
-        router.push("/onboarding");
-        return;
+        if (data && !data.nickname) {
+          router.push("/onboarding");
+          return;
+        }
+        setProfile(data);
+        const rows = await fetchAccounts(session.user.id);
+        setAllAccounts(rows);
+      } catch (err) {
+        setLoadError(err?.message || String(err));
+      } finally {
+        setLoading(false);
       }
-      setProfile(data);
-      const rows = await fetchAccounts(session.user.id);
-      setAllAccounts(rows);
-      setLoading(false);
     }
     load();
   }, [router]);
@@ -113,6 +120,22 @@ export default function DashboardPage() {
 
   if (loading) {
     return <div className="auth-wrap">{d.loading}</div>;
+  }
+
+  if (loadError) {
+    return (
+      <div className="auth-wrap">
+        <div className="card" style={{ maxWidth: 480, textAlign: "center" }}>
+          <p style={{ fontWeight: 700, marginBottom: 8 }}>
+            {lang === "en" ? "We couldn't load your dashboard" : "No pudimos cargar tu panel"}
+          </p>
+          <p className="sub" style={{ marginBottom: 16 }}>{loadError}</p>
+          <button className="btn btn-primary" onClick={() => window.location.reload()}>
+            {lang === "en" ? "Try again" : "Reintentar"}
+          </button>
+        </div>
+      </div>
+    );
   }
 
   const totals = accounts.reduce(

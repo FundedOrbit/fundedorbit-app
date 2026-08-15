@@ -27,6 +27,12 @@ export default function LoginPage() {
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo:
+            typeof window !== "undefined"
+              ? `${window.location.origin}/onboarding`
+              : "https://fundedorbit.com/onboarding",
+        },
       });
       setLoading(false);
       if (signUpError) {
