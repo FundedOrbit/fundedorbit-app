@@ -35,6 +35,11 @@ export default function DashboardPreview() {
             <div className="sub">12 {a.title.toLowerCase()}</div>
           </div>
           <div className="kpi-card positive">
+            <div className="label">{a.kpiWithdrawn}</div>
+            <div className="value">$335,060.75</div>
+            <div className="sub">{a.kpiWithdrawnSub}</div>
+          </div>
+          <div className="kpi-card positive">
             <div className="label">{a.kpiNet}</div>
             <div className="value">$48,640.75</div>
             <div className="sub">↑ 66.3%</div>
@@ -49,7 +54,37 @@ export default function DashboardPreview() {
             <div className="value">94.1%</div>
             <div className="sub">16 / 17</div>
           </div>
+          <div className="kpi-card">
+            <div className="label">{a.kpiAvgCostPerAccount}</div>
+            <div className="value">$187.30</div>
+            <div className="sub">{a.kpiAvgCostPerAccountSub}</div>
+          </div>
+          <div className="kpi-card">
+            <div className="label">{a.kpiAvgWithdrawal}</div>
+            <div className="value">$1,116.87</div>
+            <div className="sub">{a.kpiAvgWithdrawalSub}</div>
+          </div>
+          <div className="kpi-card">
+            <div className="label">{a.kpiResetsSpent}</div>
+            <div className="value">$418.00</div>
+            <div className="sub">3 {a.resetsTitle.toLowerCase()}</div>
+          </div>
         </div>
+
+        <div className="section-title" style={{ fontSize: 12.5, marginBottom: 10 }}>
+          {dict.alerts.title}
+        </div>
+        <div className="alerts-list preview-alerts">
+          <div className="alert-item">
+            <span className="alert-dot warn" />
+            <span>{d.previewAlert1}</span>
+          </div>
+          <div className="alert-item">
+            <span className="alert-dot info" />
+            <span>{d.previewAlert2}</span>
+          </div>
+        </div>
+
         <div className="chart-card preview-chart">
           <h3>{dict.dashboard.chartPnl}</h3>
           <LineChartSVG series={SAMPLE_SERIES} color="#34d399" />

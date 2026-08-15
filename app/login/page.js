@@ -10,7 +10,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { dict } = useLanguage();
   const d = dict.login;
-  const [mode, setMode] = useState("login"); // "login" | "signup"
+  const [mode, setMode] = useState("login"); // "login" | "signup" | "forgot"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,11 +33,33 @@ export default function LoginPage() {
     };
   }, [router]);
 
+  function switchMode(next) {
+    setMode(next);
+    setError("");
+    setInfo("");
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
     setInfo("");
     setLoading(true);
+
+    if (mode === "forgot") {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo:
+          typeof window !== "undefined"
+            ? `${window.location.origin}/reset-password`
+            : "https://fundedorbit.com/reset-password",
+      });
+      setLoading(false);
+      if (resetError) {
+        setError(resetError.message);
+        return;
+      }
+      setInfo(d.forgotSentMsg);
+      return;
+    }
 
     if (mode === "signup") {
       const { data, error: signUpError } = await supabase.auth.signUp({
@@ -90,20 +112,29 @@ export default function LoginPage() {
           {d.brand}
         </div>
 
-        <div className="auth-tabs">
-          <div
-            className={`auth-tab ${mode === "login" ? "active" : ""}`}
-            onClick={() => setMode("login")}
-          >
-            {d.tabLogin}
+        {mode !== "forgot" && (
+          <div className="auth-tabs">
+            <div
+              className={`auth-tab ${mode === "login" ? "active" : ""}`}
+              onClick={() => switchMode("login")}
+            >
+              {d.tabLogin}
+            </div>
+            <div
+              className={`auth-tab ${mode === "signup" ? "active" : ""}`}
+              onClick={() => switchMode("signup")}
+            >
+              {d.tabSignup}
+            </div>
           </div>
-          <div
-            className={`auth-tab ${mode === "signup" ? "active" : ""}`}
-            onClick={() => setMode("signup")}
-          >
-            {d.tabSignup}
+        )}
+
+        {mode === "forgot" && (
+          <div style={{ marginBottom: 18 }}>
+            <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 6 }}>{d.forgotTitle}</div>
+            <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>{d.forgotSubtitle}</div>
           </div>
-        </div>
+        )}
 
         {error && <div className="msg err">{error}</div>}
         {info && <div className="msg ok">{info}</div>}
@@ -119,21 +150,46 @@ export default function LoginPage() {
               placeholder={d.emailPlaceholder}
             />
           </div>
-          <div className="field">
-            <label>{d.password}</label>
-            <input
-              type="password"
-              required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={d.passwordPlaceholder}
-            />
-          </div>
+          {mode !== "forgot" && (
+            <div className="field">
+              <label>{d.password}</label>
+              <input
+                type="password"
+                required
+                minLength={6}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={d.passwordPlaceholder}
+              />
+            </div>
+          )}
+          {mode === "login" && (
+            <div style={{ textAlign: "right", marginBottom: 14, marginTop: -6 }}>
+              <button type="button" className="text-link" onClick={() => switchMode("forgot")}>
+                {d.forgotPassword}
+              </button>
+            </div>
+          )}
           <button className="btn btn-primary btn-block" type="submit" disabled={loading}>
-            {loading ? d.submitLoading : mode === "signup" ? d.submitSignup : d.submitLogin}
+            {loading
+              ? mode === "forgot"
+                ? d.forgotSubmitLoading
+                : d.submitLoading
+              : mode === "forgot"
+              ? d.forgotSubmit
+              : mode === "signup"
+              ? d.submitSignup
+              : d.submitLogin}
           </button>
         </form>
+
+        {mode === "forgot" && (
+          <div style={{ textAlign: "center", marginTop: 16 }}>
+            <button type="button" className="text-link" onClick={() => switchMode("login")}>
+              {d.backToLogin}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
