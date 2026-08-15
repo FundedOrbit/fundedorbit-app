@@ -142,3 +142,49 @@ a{color:inherit;text-decoration:none;}
 .guide-section h3{font-size:16px;margin:0 0 8px;color:var(--text-primary);}
 .guide-section p{font-size:14px;color:var(--text-secondary);line-height:1.7;margin:0;}
 .guide-intro{font-size:15px;color:var(--text-secondary);line-height:1.7;max-width:760px;margin:0 auto 40px;text-align:center;}
+
+/* modal (cupones) */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(5,7,17,.72);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;z-index:50;padding:20px;
+}
+.modal-card{
+  position:relative;width:100%;max-width:440px;background:var(--bg-deep-2);
+  border:1px solid var(--card-border);border-radius:var(--radius);padding:32px;
+}
+.modal-close{
+  position:absolute;top:14px;right:14px;background:var(--card-bg-2);border:none;color:var(--text-secondary);
+  width:28px;height:28px;border-radius:8px;cursor:pointer;font-size:14px;
+}
+
+/* ranking */
+.rank-table{
+  background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);
+  overflow:hidden;
+}
+.rank-row{
+  display:grid;grid-template-columns:40px 1fr 56px 90px 70px;align-items:center;gap:8px;
+  padding:14px 18px;border-bottom:1px solid var(--card-border);font-size:13.5px;
+}
+.rank-row:last-child{border-bottom:none;}
+.rank-head{
+  text-transform:uppercase;letter-spacing:.4px;font-size:11px;color:var(--text-muted);font-weight:700;
+  background:var(--card-bg-2);
+}
+.rank-medal{font-size:17px;}
+.rank-trader{display:flex;align-items:center;gap:8px;font-weight:600;}
+.rank-avatar{font-size:16px;}
+.positive{color:var(--success);font-weight:600;}
+.rank-blur-wrap{position:relative;}
+.rank-blurred{filter:blur(5px);pointer-events:none;user-select:none;}
+.rank-blur-overlay{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:10px;text-align:center;padding:20px;
+  background:linear-gradient(180deg, rgba(10,14,31,.15), rgba(10,14,31,.85) 40%);
+}
+.rank-blur-title{font-size:15px;font-weight:700;color:var(--text-primary);}
+.rank-blur-sub{font-size:12.5px;color:var(--text-secondary);max-width:280px;}
+@media (max-width:600px){
+  .rank-row{grid-template-columns:28px 1fr 50px 70px;}
+  .rank-row span:nth-child(5){display:none;}
+}

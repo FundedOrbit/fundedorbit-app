@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabaseClient";
 import { useLanguage } from "../../components/LanguageProvider";
 import LangToggle from "../../components/LangToggle";
+import CouponsLink from "../../components/CouponsLink";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -56,6 +57,10 @@ export default function DashboardPage() {
           FundedOrbit
         </div>
         <div className="nav-right">
+          <CouponsLink className="btn btn-ghost">{dict.nav.coupons}</CouponsLink>
+          <Link href="/ranking" className="btn btn-ghost">
+            {dict.ranking.navLabel}
+          </Link>
           <Link href="/como-usar" className="btn btn-ghost">
             {dict.nav.howToUse}
           </Link>

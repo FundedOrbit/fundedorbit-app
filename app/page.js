@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useLanguage } from "../components/LanguageProvider";
 import LangToggle from "../components/LangToggle";
+import CouponsLink from "../components/CouponsLink";
 
 export default function LandingPage() {
   const { dict } = useLanguage();
@@ -18,7 +19,8 @@ export default function LandingPage() {
         <div className="nav-links">
           <a href="#como-funciona">{d.nav.howItWorks}</a>
           <a href="#resenas">{d.nav.reviews}</a>
-          <span>{d.nav.coupons}</span>
+          <CouponsLink>{d.nav.coupons}</CouponsLink>
+          <Link href="/ranking">{d.ranking.navLabel}</Link>
           <Link href="/como-usar">{d.nav.howToUse}</Link>
         </div>
         <div className="nav-right">

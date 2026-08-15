@@ -53,20 +53,6 @@ export default function LoginPage() {
     router.push("/dashboard");
   }
 
-  async function handleGoogle() {
-    setError("");
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo:
-          typeof window !== "undefined"
-            ? `${window.location.origin}/onboarding`
-            : undefined,
-      },
-    });
-    if (oauthError) setError(oauthError.message);
-  }
-
   return (
     <div className="auth-wrap">
       <div style={{ position: "fixed", top: 20, right: 20 }}>
@@ -122,12 +108,6 @@ export default function LoginPage() {
             {loading ? d.submitLoading : mode === "signup" ? d.submitSignup : d.submitLogin}
           </button>
         </form>
-
-        <div className="divider">{d.or}</div>
-
-        <button className="btn btn-ghost btn-block" onClick={handleGoogle} type="button">
-          {d.google}
-        </button>
       </div>
     </div>
   );
