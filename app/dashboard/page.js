@@ -329,24 +329,22 @@ export default function DashboardPage() {
             {a.title}
           </button>
         </div>
-        {tab === "cuentas" && (
-          <div className="app-toolbar-actions">
-            {allAccounts.length > 0 && (
-              <button className="btn btn-ghost" onClick={handleExportCsv}>
-                {a.exportCsv}
-              </button>
-            )}
-            <button
-              className="btn btn-primary"
-              onClick={() => {
-                setEditing(null);
-                setShowForm(true);
-              }}
-            >
-              {a.newAccount}
+        <div className="app-toolbar-actions">
+          {tab === "cuentas" && allAccounts.length > 0 && (
+            <button className="btn btn-ghost" onClick={handleExportCsv}>
+              {a.exportCsv}
             </button>
-          </div>
-        )}
+          )}
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              setEditing(null);
+              setShowForm(true);
+            }}
+          >
+            {a.newAccount}
+          </button>
+        </div>
       </div>
 
       {tab === "dashboard" ? (
