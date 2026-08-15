@@ -23,6 +23,10 @@ export default function AccountsPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [search, setSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterCompany, setFilterCompany] = useState("all");
+  const [filterCancelled, setFilterCancelled] = useState("all");
 
   useEffect(() => {
     async function load() {
@@ -145,6 +149,23 @@ export default function AccountsPage() {
     return <div className="auth-wrap">{a.loading}</div>;
   }
 
+  const companyOptions = [...new Set(accounts.map((x) => (x.company || "").trim()).filter(Boolean))].sort();
+
+  const filteredAccounts = accounts.filter((acc) => {
+    if (filterStatus !== "all" && acc.status !== filterStatus) return false;
+    if (filterCompany !== "all" && (acc.company || "").trim() !== filterCompany) return false;
+    if (filterCancelled === "yes" && !acc.cancelled) return false;
+    if (filterCancelled === "no" && acc.cancelled) return false;
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      const idMatch = (acc.account_id || "").toLowerCase().includes(q);
+      const companyMatch = (acc.company || "").toLowerCase().includes(q);
+      const extraMatch = (acc.extra_ids || []).some((x) => (x.id || "").toLowerCase().includes(q) || (x.label || "").toLowerCase().includes(q));
+      if (!idMatch && !companyMatch && !extraMatch) return false;
+    }
+    return true;
+  });
+
   return (
     <div className="wrap">
       <SiteNav rightSlot={
@@ -177,6 +198,40 @@ export default function AccountsPage() {
             <p>{a.empty}</p>
           </div>
         ) : (
+          <>
+            <div className="filter-bar">
+              <input
+                type="text"
+                placeholder={a.searchPlaceholder}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+                <option value="all">{a.filterAllStatus}</option>
+                <option value="activa">{a.statusActiva}</option>
+                <option value="pasada">{a.statusPasada}</option>
+                <option value="live">{a.statusLive}</option>
+                <option value="quemada">{a.statusQuemada}</option>
+              </select>
+              <select value={filterCompany} onChange={(e) => setFilterCompany(e.target.value)}>
+                <option value="all">{a.filterAllCompanies}</option>
+                {companyOptions.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+              <select value={filterCancelled} onChange={(e) => setFilterCancelled(e.target.value)}>
+                <option value="all">{a.filterCancelledAll}</option>
+                <option value="yes">{a.filterCancelledYes}</option>
+                <option value="no">{a.filterCancelledNo}</option>
+              </select>
+              <span className="filter-count">{filteredAccounts.length} / {accounts.length}</span>
+            </div>
+
+            {filteredAccounts.length === 0 ? (
+              <div className="card" style={{ textAlign: "center", padding: 40 }}>
+                <p>{a.noResults}</p>
+              </div>
+            ) : (
           <div className="accounts-table-wrap">
             <table className="accounts-table">
               <thead>
@@ -194,7 +249,7 @@ export default function AccountsPage() {
                 </tr>
               </thead>
               <tbody>
-                {accounts.map((acc) => {
+                {filteredAccounts.map((acc) => {
                   const m = accountMetrics(acc);
                   return (
                     <tr key={acc.id}>
@@ -228,6 +283,8 @@ export default function AccountsPage() {
               </tbody>
             </table>
           </div>
+            )}
+          </>
         )}
       </section>
 

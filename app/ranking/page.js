@@ -29,8 +29,6 @@ export default function RankingPage() {
 
   const top3 = mockRankings.slice(0, 3);
   const restTraders = mockRankings.slice(3);
-  const top3Companies = mockCompanyRankings.slice(0, 3);
-  const restCompanies = mockCompanyRankings.slice(3);
 
   function renderTraderRow(u) {
     return (
@@ -103,33 +101,23 @@ export default function RankingPage() {
         <h2 style={{ fontSize: 22, textAlign: "center", marginBottom: 6 }}>{r.companiesTitle}</h2>
         <p className="sub" style={{ marginBottom: 24 }}>{r.companiesSubtitle}</p>
 
-        {!checked ? null : (
-          <div className="rank-table">
-            <div className="rank-row rank-row-4col rank-head">
-              <span>#</span>
-              <span>{r.colCompanyName}</span>
-              <span>{r.colAvgDaysPay}</span>
-              <span>{r.colTotalCommunityWd}</span>
-            </div>
-
-            {top3Companies.map(renderCompanyRow)}
-
-            {loggedIn ? (
-              restCompanies.map(renderCompanyRow)
-            ) : (
-              <div className="rank-blur-wrap">
-                <div className="rank-blurred">{restCompanies.map(renderCompanyRow)}</div>
-                <div className="rank-blur-overlay">
-                  <div className="rank-blur-title">{r.blurTitle}</div>
-                  <div className="rank-blur-sub">{r.blurSub}</div>
-                  <Link href="/login" className="btn btn-primary">
-                    {r.joinCta}
-                  </Link>
-                </div>
+        <div className="rank-table">
+          <div className="rank-blur-wrap">
+            <div className="rank-blurred">
+              <div className="rank-row rank-row-4col rank-head">
+                <span>#</span>
+                <span>{r.colCompanyName}</span>
+                <span>{r.colAvgDaysPay}</span>
+                <span>{r.colTotalCommunityWd}</span>
               </div>
-            )}
+              {mockCompanyRankings.map(renderCompanyRow)}
+            </div>
+            <div className="rank-blur-overlay">
+              <div className="rank-blur-title">{r.companiesLockedTitle}</div>
+              <div className="rank-blur-sub">{r.companiesLockedSub}</div>
+            </div>
           </div>
-        )}
+        </div>
       </section>
 
       <SiteFooter />
