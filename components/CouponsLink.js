@@ -3,16 +3,29 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import { supabase } from "../lib/supabaseClient";
 import { useLanguage } from "./LanguageProvider";
 
 export default function CouponsLink({ className, children }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
   const { dict } = useLanguage();
   const c = dict.coupons;
 
   useEffect(() => {
     setMounted(true);
+    let active = true;
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (active) setLoggedIn(!!session);
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setLoggedIn(!!session);
+    });
+    return () => {
+      active = false;
+      listener?.subscription?.unsubscribe();
+    };
   }, []);
 
   const modal = open && (
@@ -22,11 +35,20 @@ export default function CouponsLink({ className, children }) {
           ✕
         </button>
         <div className="icon-badge" style={{ marginBottom: 14 }}>🎟️</div>
-        <h2 style={{ marginTop: 0 }}>{c.title}</h2>
-        <p style={{ color: "var(--text-secondary)", lineHeight: 1.6, fontSize: 14 }}>{c.body}</p>
-        <Link href="/login" className="btn btn-primary btn-block" onClick={() => setOpen(false)}>
-          {c.cta}
-        </Link>
+        {loggedIn ? (
+          <>
+            <h2 style={{ marginTop: 0 }}>{c.soonTitle}</h2>
+            <p style={{ color: "var(--text-secondary)", lineHeight: 1.6, fontSize: 14 }}>{c.soonBody}</p>
+          </>
+        ) : (
+          <>
+            <h2 style={{ marginTop: 0 }}>{c.title}</h2>
+            <p style={{ color: "var(--text-secondary)", lineHeight: 1.6, fontSize: 14 }}>{c.body}</p>
+            <Link href="/login" className="btn btn-primary btn-block" onClick={() => setOpen(false)}>
+              {c.cta}
+            </Link>
+          </>
+        )}
       </div>
     </div>
   );
