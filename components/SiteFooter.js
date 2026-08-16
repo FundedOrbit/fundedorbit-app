@@ -14,6 +14,17 @@ export default function SiteFooter() {
       <div className="footer-contact">
         {f.contact}: <a href="mailto:fundedorbit@gmail.com">fundedorbit@gmail.com</a>
       </div>
+      <div className="footer-suggest">{f.featureRequest}</div>
+      <div className="footer-social">
+        <a
+          href="https://www.instagram.com/fundedorbit/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn btn-ghost footer-social-btn"
+        >
+          📷 {f.followInstagram}
+        </a>
+      </div>
       <div className="footer-rights">{f.rights}</div>
     </div>
   );

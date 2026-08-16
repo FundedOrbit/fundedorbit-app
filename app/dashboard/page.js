@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "../../lib/supabaseClient";
 import { useLanguage } from "../../components/LanguageProvider";
 import SiteNav from "../../components/SiteNav";
@@ -375,7 +376,14 @@ export default function DashboardPage() {
 
           {allAccounts.length === 0 ? (
             <div className="card" style={{ textAlign: "center", padding: 40 }}>
-              <p>{a.empty}</p>
+              <p style={{ fontWeight: 700, marginBottom: 8 }}>{a.empty}</p>
+              <p className="sub" style={{ margin: 0 }}>
+                {a.emptyInstructions1}
+                <Link href="/como-usar" style={{ color: "var(--accent-cyan)", fontWeight: 600 }}>
+                  {a.emptyInstructionsLink}
+                </Link>
+                {a.emptyInstructions2}
+              </p>
             </div>
           ) : accounts.length === 0 ? (
             <div className="card" style={{ textAlign: "center", padding: 40 }}>
@@ -951,7 +959,14 @@ export default function DashboardPage() {
         <section style={{ padding: "0 0 40px" }}>
           {allAccounts.length === 0 ? (
             <div className="card" style={{ textAlign: "center", padding: 40 }}>
-              <p>{a.empty}</p>
+              <p style={{ fontWeight: 700, marginBottom: 8 }}>{a.empty}</p>
+              <p className="sub" style={{ margin: 0 }}>
+                {a.emptyInstructions1}
+                <Link href="/como-usar" style={{ color: "var(--accent-cyan)", fontWeight: 600 }}>
+                  {a.emptyInstructionsLink}
+                </Link>
+                {a.emptyInstructions2}
+              </p>
             </div>
           ) : (
             <>
