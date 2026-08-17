@@ -9,13 +9,14 @@ import SiteNav from "../../components/SiteNav";
 import SiteFooter from "../../components/SiteFooter";
 import LineChartSVG from "../../components/LineChartSVG";
 import AccountFormModal from "../../components/AccountFormModal";
+import InsightsPanel from "../../components/InsightsPanel";
+import MilestonesBadges from "../../components/MilestonesBadges";
+import { syncInsights } from "../../lib/insightsSync";
 import {
   fetchAccounts,
   deleteAccount,
   accountMetrics,
   computeTopStats,
-  computeAlerts,
-  renderAlert,
   computeLifecycle,
   computePayouts,
   computeMonthly,
@@ -86,6 +87,9 @@ export default function DashboardPage() {
   const [filterCompany, setFilterCompany] = useState("all");
   const [filterCancelled, setFilterCancelled] = useState("all");
 
+  const [insightsList, setInsightsList] = useState([]);
+  const [badgesList, setBadgesList] = useState([]);
+
   useEffect(() => {
     async function load() {
       setLoadError(null);
@@ -119,6 +123,29 @@ export default function DashboardPage() {
     }
     load();
   }, [router]);
+
+  useEffect(() => {
+    if (!userId || allAccounts.length === 0) {
+      setInsightsList([]);
+      setBadgesList([]);
+      return;
+    }
+    let active = true;
+    syncInsights(userId, allAccounts, lang)
+      .then(({ insights, badges }) => {
+        if (!active) return;
+        setInsightsList(insights);
+        setBadgesList(badges);
+      })
+      .catch(() => {
+        if (!active) return;
+        setInsightsList([]);
+        setBadgesList([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, [userId, allAccounts, lang]);
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -253,7 +280,6 @@ export default function DashboardPage() {
 
   const stats = computeTopStats(accounts);
 
-  const alerts = computeAlerts(accounts);
   const lifecycle = computeLifecycle(accounts);
   const payoutsStats = computePayouts(accounts);
   const monthly = computeMonthly(accounts);
@@ -450,18 +476,7 @@ export default function DashboardPage() {
 
               <h2 className="section-title">{al.title}</h2>
               <div className="card" style={{ marginBottom: 10 }}>
-                {alerts.length === 0 ? (
-                  <div className="empty-state">{al.none}</div>
-                ) : (
-                  <div className="alerts-list">
-                    {alerts.map((alert, i) => (
-                      <div className="alert-item" key={i}>
-                        <span className={`alert-dot ${alert.type}`} />
-                        <span>{renderAlert(dict, alert)}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <InsightsPanel insights={insightsList} dict={dict} />
               </div>
 
               <h2 className="section-title">{lc.title}</h2>
@@ -952,6 +967,11 @@ export default function DashboardPage() {
                   </table>
                 </div>
               )}
+
+              <h2 className="section-title">{d.milestonesTitle}</h2>
+              <div className="card" style={{ marginBottom: 16 }}>
+                <MilestonesBadges badges={badgesList} lang={lang} dict={dict} />
+              </div>
             </>
           )}
         </>
