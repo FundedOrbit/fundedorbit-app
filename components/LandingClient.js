@@ -20,6 +20,7 @@ export default function LandingClient() {
           {d.hero.title1} <span>{d.hero.titleHighlight}</span>
         </h1>
         <p>{d.hero.subtitle}</p>
+        <p className="hero-closing">{d.hero.subtitleClosing}</p>
         <div className="hero-actions">
           <Link href="/login" className="btn btn-primary">
             {d.hero.ctaStart}

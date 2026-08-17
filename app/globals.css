@@ -72,6 +72,7 @@ a{color:inherit;text-decoration:none;}
 .hero h1{font-size:56px;line-height:1.12;margin:0 0 20px;font-weight:800;}
 .hero h1 span{background:linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));-webkit-background-clip:text;background-clip:text;color:transparent;}
 .hero p{font-size:20px;color:var(--text-secondary);max-width:700px;margin:0 auto 30px;line-height:1.6;}
+.hero p.hero-closing{font-weight:600;color:var(--text-primary);margin-top:-14px;}
 .hero-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
 .section{padding:50px 0;}
 .section h2{font-size:26px;margin:0 0 8px;text-align:center;}
@@ -129,6 +130,7 @@ a{color:inherit;text-decoration:none;}
   .grid-3{grid-template-columns:1fr;}
   .hero h1{font-size:38px;}
   .hero p{font-size:17px;}
+  .hero p.hero-closing{margin-top:-8px;}
   .hero-note{font-size:13.5px;}
   .nav-links{display:none;}
 }
