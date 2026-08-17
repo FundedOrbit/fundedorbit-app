@@ -1,4 +1,5 @@
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import { LanguageProvider } from "../components/LanguageProvider";
 
 export const viewport = {
@@ -26,6 +27,7 @@ export default function RootLayout({ children }) {
       <body>
         <div className="stars" />
         <LanguageProvider>{children}</LanguageProvider>
+        <Analytics />
       </body>
     </html>
   );

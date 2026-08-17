@@ -4,7 +4,7 @@ export default function robots() {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/dashboard", "/accounts", "/login", "/onboarding"],
+        disallow: ["/dashboard", "/accounts", "/login", "/onboarding", "/reset-password"],
       },
     ],
     sitemap: "https://fundedorbit.com/sitemap.xml",
