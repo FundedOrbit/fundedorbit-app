@@ -420,6 +420,11 @@ export default function DashboardPage() {
               <section style={{ paddingBottom: 10 }}>
                 <div className="kpi-mini-grid">
                   <div className="kpi-card">
+                    <div className="label">{a.kpiActiveAccounts}</div>
+                    <div className="value accent-value">{stats.counts.activa || 0}</div>
+                    <div className="sub">{a.kpiActiveAccountsSub}</div>
+                  </div>
+                  <div className="kpi-card">
                     <div className="label">{a.kpiInvested}</div>
                     <div className="value">{fmtMoney(stats.totalInvertido)}</div>
                     <div className="sub">{a.kpiInvestedSub.replace("{n}", stats.totalCuentas)}</div>
@@ -470,6 +475,11 @@ export default function DashboardPage() {
                     <div className="label">{a.kpiRecurringSpent}</div>
                     <div className="value">{fmtMoney(stats.costoRecurrentes)}</div>
                     <div className="sub">{a.kpiRecurringSpentSub.replace("{n}", stats.numRecurrentes)}</div>
+                  </div>
+                  <div className="kpi-card">
+                    <div className="label">{a.kpiTotalAccountsPeriod}</div>
+                    <div className="value accent-value">{stats.totalCuentas}</div>
+                    <div className="sub">{a.kpiTotalAccountsPeriodSub}</div>
                   </div>
                 </div>
               </section>
