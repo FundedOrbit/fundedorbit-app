@@ -5,6 +5,7 @@ import { useLanguage } from "./LanguageProvider";
 import { createAccount, updateAccount } from "../lib/accountsClient";
 
 const STATUS_OPTIONS = ["activa", "pasada", "live", "quemada"];
+const SIZE_OPTIONS = ["25K", "50K", "100K", "150K", "200K"];
 const WD_STATUS_OPTIONS = ["solicitado", "aprobado", "recibido", "denegado"];
 
 function emptyForm(account) {
@@ -204,7 +205,12 @@ export default function AccountFormModal({ account, userId, allAccounts = [], on
             </div>
             <div className="field">
               <label>{a.fieldSize}</label>
-              <input value={form.size} onChange={(e) => set("size", e.target.value)} placeholder={a.fieldSizePlaceholder} />
+              <select value={form.size} onChange={(e) => set("size", e.target.value)}>
+                <option value="">{a.fieldSizePlaceholder}</option>
+                {SIZE_OPTIONS.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
             </div>
             <div className="field">
               <label>{a.fieldMethodForm}</label>
