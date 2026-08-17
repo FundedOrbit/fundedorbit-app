@@ -49,10 +49,10 @@ export default function DashboardPreview() {
             <div className="value">+845.3%</div>
             <div className="sub">{a.kpiRoiSub}</div>
           </div>
-          <div className="kpi-card positive">
+          <div className="kpi-card">
             <div className="label">{a.kpiApprovalRate}</div>
-            <div className="value">91.7%</div>
-            <div className="sub">11 / 12</div>
+            <div className="value">30.0%</div>
+            <div className="sub">3 / 10</div>
           </div>
           <div className="kpi-card">
             <div className="label">{a.kpiAvgCostPerAccount}</div>
