@@ -22,6 +22,7 @@ function emptyForm(account) {
       activation_fee: account.activation_fee ?? "",
       passed_date: account.passed_date || "",
       burned_date: account.burned_date || "",
+      extraBurns: account.burned_dates || [],
       banned: !!account.banned,
       ban_date: account.ban_date || "",
       ban_reason: account.ban_reason || "",
@@ -46,6 +47,7 @@ function emptyForm(account) {
     activation_fee: "",
     passed_date: "",
     burned_date: "",
+    extraBurns: [],
     banned: false,
     ban_date: "",
     ban_reason: "",
@@ -95,6 +97,20 @@ export default function AccountFormModal({ account, userId, allAccounts = [], on
   }
   function removeReset(i) {
     setForm((f) => ({ ...f, resets: f.resets.filter((_, idx) => idx !== i) }));
+  }
+
+  function addBurn() {
+    setForm((f) => ({ ...f, extraBurns: [...f.extraBurns, { date: "" }] }));
+  }
+  function updateBurn(i, value) {
+    setForm((f) => {
+      const extraBurns = [...f.extraBurns];
+      extraBurns[i] = { ...extraBurns[i], date: value };
+      return { ...f, extraBurns };
+    });
+  }
+  function removeBurn(i) {
+    setForm((f) => ({ ...f, extraBurns: f.extraBurns.filter((_, idx) => idx !== i) }));
   }
 
   function addExtraId() {
@@ -148,6 +164,7 @@ export default function AccountFormModal({ account, userId, allAccounts = [], on
       activation_fee: Number(form.activation_fee) || 0,
       passed_date: form.passed_date || null,
       burned_date: form.burned_date || null,
+      burned_dates: form.extraBurns.filter((b) => b.date),
       banned: form.banned,
       ban_date: form.banned ? form.ban_date || null : null,
       ban_reason: form.banned ? form.ban_reason || null : null,
@@ -246,10 +263,28 @@ export default function AccountFormModal({ account, userId, allAccounts = [], on
               <input type="date" value={form.passed_date} onChange={(e) => set("passed_date", e.target.value)} />
             </div>
             <div className="field">
-              <label>{a.fieldBurnedDate}</label>
+              <label className="field-label-row">
+                {a.fieldBurnedDate}
+                <button type="button" className="text-link" onClick={addBurn}>+ {a.addBurnDate}</button>
+              </label>
               <input type="date" value={form.burned_date} onChange={(e) => set("burned_date", e.target.value)} />
             </div>
           </div>
+
+          {form.extraBurns.length > 0 && (
+            <div style={{ marginBottom: 14 }}>
+              <div className="section-label">{a.burnedDatesTitle}</div>
+              {form.extraBurns.map((b, i) => (
+                <div className="dyn-block" key={i}>
+                  <button type="button" className="dyn-remove" onClick={() => removeBurn(i)}>✕</button>
+                  <div className="field" style={{ marginBottom: 0 }}>
+                    <label>{a.burnDateN.replace("{n}", i + 2)}</label>
+                    <input type="date" value={b.date || ""} onChange={(e) => updateBurn(i, e.target.value)} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           <label className="checkbox-field">
             <input type="checkbox" checked={form.recurring} onChange={(e) => set("recurring", e.target.checked)} />

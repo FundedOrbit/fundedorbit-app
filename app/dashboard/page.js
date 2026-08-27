@@ -15,6 +15,8 @@ import { syncInsights } from "../../lib/insightsSync";
 import {
   fetchAccounts,
   deleteAccount,
+  updateAccount,
+  shouldAutoReactivate,
   accountMetrics,
   computeTopStats,
   computeLifecycle,
@@ -114,6 +116,21 @@ export default function DashboardPage() {
         setProfile(data);
         setUserId(session.user.id);
         const rows = await fetchAccounts(session.user.id);
+
+        // cuentas con cobro recurrente que ya deberían haberse reestablecido solas
+        // (la prop firm las reabre en la fecha de cobro aunque se hayan quemado)
+        const toReactivate = rows.filter(shouldAutoReactivate);
+        if (toReactivate.length) {
+          try {
+            await Promise.all(toReactivate.map((acc) => updateAccount(acc.id, { status: "activa" })));
+            toReactivate.forEach((acc) => {
+              acc.status = "activa";
+            });
+          } catch (e) {
+            // si falla la actualización, seguimos mostrando los datos tal cual vinieron
+          }
+        }
+
         setAllAccounts(rows);
       } catch (err) {
         setLoadError(err?.message || String(err));
@@ -281,6 +298,9 @@ export default function DashboardPage() {
   const stats = computeTopStats(accounts);
 
   const lifecycle = computeLifecycle(accounts);
+  const currentFundedIds = accounts
+    .filter((acc) => acc.status === "pasada")
+    .map((acc) => acc.account_id || "—");
   const payoutsStats = computePayouts(accounts);
   const monthly = computeMonthly(accounts);
   const maxMonthly = Math.max(1, ...monthly.flatMap((mo) => [mo.invertido, mo.retirado]));
@@ -421,7 +441,11 @@ export default function DashboardPage() {
                 <div className="kpi-mini-grid">
                   <div className="kpi-card">
                     <div className="label">{a.kpiActiveAccounts}</div>
-                    <div className="value accent-value">{stats.counts.activa || 0}</div>
+                    <div className="value">
+                      <span className="accent-value">{stats.counts.activa || 0}</span>
+                      <span className="value-sep"> / </span>
+                      <span className="value-funded">{stats.counts.pasada || 0}</span>
+                    </div>
                     <div className="sub">{a.kpiActiveAccountsSub}</div>
                   </div>
                   <div className="kpi-card">
@@ -494,7 +518,15 @@ export default function DashboardPage() {
                 <div className="kpi-card positive">
                   <div className="label">{lc.passed}</div>
                   <div className="value">{lifecycle.pasadas}</div>
-                  <div className="sub">{lc.passedSub.replace("{pct}", lifecycle.pctPasadas.toFixed(0))}</div>
+                  <div className="sub">
+                    {lc.passedSub.replace("{pct}", lifecycle.pctPasadas.toFixed(0))}
+                    {currentFundedIds.length > 0 && (
+                      <>
+                        <br />
+                        {lc.currentFundedId.replace("{ids}", currentFundedIds.join(", "))}
+                      </>
+                    )}
+                  </div>
                 </div>
                 <div className="kpi-card positive">
                   <div className="label">{lc.fundedTotal}</div>
@@ -703,8 +735,20 @@ export default function DashboardPage() {
                         {monthly.map((mo) => (
                           <div className="bar-group" key={mo.month}>
                             <div className="bar-pair">
-                              <div className="bar invest" style={{ height: `${(mo.invertido / maxMonthly) * 130}px` }} />
-                              <div className="bar withdraw" style={{ height: `${(mo.retirado / maxMonthly) * 130}px` }} />
+                              <div
+                                className="bar invest"
+                                style={{ height: `${(mo.invertido / maxMonthly) * 130}px` }}
+                                title={`${a.kpiInvested}: ${fmtMoney(mo.invertido)}`}
+                              >
+                                <span className="bar-tooltip">{fmtMoney(mo.invertido)}</span>
+                              </div>
+                              <div
+                                className="bar withdraw"
+                                style={{ height: `${(mo.retirado / maxMonthly) * 130}px` }}
+                                title={`${a.kpiWithdrawn}: ${fmtMoney(mo.retirado)}`}
+                              >
+                                <span className="bar-tooltip">{fmtMoney(mo.retirado)}</span>
+                              </div>
                             </div>
                             <div className="bar-label">{mo.month.slice(5)}</div>
                           </div>
@@ -1056,6 +1100,15 @@ export default function DashboardPage() {
                           <tr key={acc.id}>
                             <td>
                               {acc.account_id || "—"}
+                              {acc.recurring && m.recurringCharges > 0 && (
+                                <span
+                                  className="badge-pill"
+                                  style={{ marginLeft: 6 }}
+                                  title={a.chargeCountTitle ? a.chargeCountTitle.replace("{n}", m.recurringCharges) : `${m.recurringCharges}`}
+                                >
+                                  🔁 {m.recurringCharges}
+                                </span>
+                              )}
                               {acc.cancelled && (
                                 <span className="badge cancelada" style={{ marginLeft: 6 }}>
                                   {a.cancelledBadge}

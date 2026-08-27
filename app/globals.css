@@ -108,6 +108,7 @@ a{color:inherit;text-decoration:none;}
 .auth-tab.active{background:linear-gradient(135deg, var(--accent-purple-deep), var(--accent-purple));color:#fff;}
 .field{margin-bottom:14px;}
 .field label{display:block;font-size:12.5px;color:var(--text-secondary);margin-bottom:6px;font-weight:600;}
+.field label.field-label-row{display:flex;justify-content:space-between;align-items:center;}
 .field input,.field select{
   width:100%;padding:11px 13px;border-radius:10px;border:1px solid var(--card-border);
   background:var(--card-bg-2);color:var(--text-primary);font-size:14px;outline:none;
@@ -251,6 +252,9 @@ a{color:inherit;text-decoration:none;}
 .kpi-card.positive .value{color:var(--success);}
 .kpi-card.negative .value{color:var(--danger);}
 .kpi-card .value.accent-value{color:var(--accent-cyan);}
+.kpi-card .value .accent-value{color:var(--accent-cyan);}
+.kpi-card .value .value-funded{color:var(--success);}
+.kpi-card .value .value-sep{color:var(--text-muted);font-weight:400;}
 
 /* generic status badge (accounts table) */
 .badge{
@@ -378,9 +382,11 @@ a{color:inherit;text-decoration:none;}
 .bars-row{display:flex;align-items:flex-end;gap:10px;height:160px;overflow-x:auto;padding-bottom:4px;}
 .bar-group{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:36px;}
 .bar-pair{display:flex;align-items:flex-end;gap:3px;height:130px;}
-.bar{width:12px;border-radius:4px 4px 0 0;}
+.bar{width:12px;border-radius:4px 4px 0 0;position:relative;cursor:pointer;}
 .bar.invest{background:linear-gradient(180deg, var(--accent-pink), rgba(244,114,182,.3));}
 .bar.withdraw{background:linear-gradient(180deg, var(--accent-cyan), rgba(34,211,238,.3));}
+.bar-tooltip{position:absolute;bottom:100%;left:50%;transform:translateX(-50%) translateY(-6px);background:#0f1220;border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:600;white-space:nowrap;padding:3px 7px;border-radius:6px;opacity:0;pointer-events:none;transition:opacity .12s ease;z-index:5;}
+.bar:hover .bar-tooltip{opacity:1;}
 .bar-label{font-size:10px;color:var(--text-muted);white-space:nowrap;}
 .chart-legend{display:flex;gap:16px;margin-top:14px;font-size:11.5px;color:var(--text-muted);}
 .chart-legend span{display:flex;align-items:center;gap:6px;}
