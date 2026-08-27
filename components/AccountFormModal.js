@@ -150,6 +150,12 @@ export default function AccountFormModal({ account, userId, allAccounts = [], on
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+
+    if (form.cancelled && !form.cancelled_date) {
+      setError(a.errCancelledDateRequired || "Ingresa la fecha de cancelación.");
+      return;
+    }
+
     setSaving(true);
 
     const payload = {
@@ -317,7 +323,7 @@ export default function AccountFormModal({ account, userId, allAccounts = [], on
           {form.cancelled && (
             <div className="field" style={{ marginBottom: 10 }}>
               <label>{a.fieldCancelledDate}</label>
-              <input type="date" value={form.cancelled_date} onChange={(e) => set("cancelled_date", e.target.value)} />
+              <input type="date" value={form.cancelled_date} onChange={(e) => set("cancelled_date", e.target.value)} required />
             </div>
           )}
 

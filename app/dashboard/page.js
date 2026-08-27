@@ -298,9 +298,6 @@ export default function DashboardPage() {
   const stats = computeTopStats(accounts);
 
   const lifecycle = computeLifecycle(accounts);
-  const currentFundedIds = accounts
-    .filter((acc) => acc.status === "pasada")
-    .map((acc) => acc.account_id || "—");
   const payoutsStats = computePayouts(accounts);
   const monthly = computeMonthly(accounts);
   const maxMonthly = Math.max(1, ...monthly.flatMap((mo) => [mo.invertido, mo.retirado]));
@@ -472,7 +469,7 @@ export default function DashboardPage() {
                     <div className="label">{a.kpiApprovalRate}</div>
                     <div className="value">{stats.tasaAprobacion.toFixed(0)}%</div>
                     <div className="sub">
-                      {a.kpiApprovalRateSub.replace("{passed}", stats.counts.pasada || 0).replace("{burned}", stats.counts.quemada || 0)}
+                      {a.kpiApprovalRateSub.replace("{passed}", stats.numAprobadasHist || 0).replace("{burned}", stats.numQuemadasSinAprobar || 0)}
                     </div>
                   </div>
                   <div className="kpi-card">
@@ -518,15 +515,7 @@ export default function DashboardPage() {
                 <div className="kpi-card positive">
                   <div className="label">{lc.passed}</div>
                   <div className="value">{lifecycle.pasadas}</div>
-                  <div className="sub">
-                    {lc.passedSub.replace("{pct}", lifecycle.pctPasadas.toFixed(0))}
-                    {currentFundedIds.length > 0 && (
-                      <>
-                        <br />
-                        {lc.currentFundedId.replace("{ids}", currentFundedIds.join(", "))}
-                      </>
-                    )}
-                  </div>
+                  <div className="sub">{lc.passedSub.replace("{pct}", lifecycle.pctPasadas.toFixed(0))}</div>
                 </div>
                 <div className="kpi-card positive">
                   <div className="label">{lc.fundedTotal}</div>
