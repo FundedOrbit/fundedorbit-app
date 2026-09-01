@@ -20,8 +20,10 @@ export default function RankingClient() {
 
   const [traders, setTraders] = useState([]);
   const [tradersLoading, setTradersLoading] = useState(true);
+  const [tradersError, setTradersError] = useState(null);
   const [companies, setCompanies] = useState([]);
   const [companiesLoading, setCompaniesLoading] = useState(false);
+  const [companiesError, setCompaniesError] = useState(null);
 
   useEffect(() => {
     async function check() {
@@ -38,10 +40,16 @@ export default function RankingClient() {
     let active = true;
     fetchTraderRankings()
       .then((rows) => {
-        if (active) setTraders(rows);
+        if (active) {
+          setTraders(rows);
+          setTradersError(null);
+        }
       })
-      .catch(() => {
-        if (active) setTraders([]);
+      .catch((err) => {
+        if (active) {
+          setTraders([]);
+          setTradersError(err?.message || String(err));
+        }
       })
       .finally(() => {
         if (active) setTradersLoading(false);
@@ -57,10 +65,16 @@ export default function RankingClient() {
     setCompaniesLoading(true);
     fetchCompanyRankings()
       .then((rows) => {
-        if (active) setCompanies(rows);
+        if (active) {
+          setCompanies(rows);
+          setCompaniesError(null);
+        }
       })
-      .catch(() => {
-        if (active) setCompanies([]);
+      .catch((err) => {
+        if (active) {
+          setCompanies([]);
+          setCompaniesError(err?.message || String(err));
+        }
       })
       .finally(() => {
         if (active) setCompaniesLoading(false);
@@ -117,38 +131,46 @@ export default function RankingClient() {
           <div className="card" style={{ textAlign: "center", padding: 40 }}>
             <p className="sub" style={{ margin: 0 }}>{r.loading}</p>
           </div>
+        ) : tradersError ? (
+          <div className="card" style={{ textAlign: "center", padding: 40 }}>
+            <p style={{ fontWeight: 700, marginBottom: 6 }}>{r.errorTitle}</p>
+            <p className="sub" style={{ margin: 0 }}>{r.errorSub}</p>
+          </div>
         ) : traders.length === 0 ? (
           <div className="card" style={{ textAlign: "center", padding: 40 }}>
             <p style={{ fontWeight: 700, marginBottom: 6 }}>{r.tradersNotEnoughTitle}</p>
             <p className="sub" style={{ margin: 0 }}>{r.tradersNotEnoughSub}</p>
           </div>
         ) : (
-          <div className="rank-table">
-            <div className="rank-row rank-head">
-              <span>#</span>
-              <span>{r.colTrader}</span>
-              <span>{r.colCountry}</span>
-              <span>{r.colRoi}</span>
-              <span>{r.colWithdrawals}</span>
-            </div>
-
-            {top3.map(renderTraderRow)}
-
-            {restTraders.length === 0 ? null : loggedIn ? (
-              restTraders.map(renderTraderRow)
-            ) : (
-              <div className="rank-blur-wrap">
-                <div className="rank-blurred">{restTraders.map(renderTraderRow)}</div>
-                <div className="rank-blur-overlay">
-                  <div className="rank-blur-title">{r.blurTitle}</div>
-                  <div className="rank-blur-sub">{r.blurSub}</div>
-                  <Link href="/login" className="btn btn-primary">
-                    {r.joinCta}
-                  </Link>
-                </div>
+          <>
+            <div className="rank-table">
+              <div className="rank-row rank-head">
+                <span>#</span>
+                <span>{r.colTrader}</span>
+                <span>{r.colCountry}</span>
+                <span>{r.colRoi}</span>
+                <span>{r.colWithdrawals}</span>
               </div>
-            )}
-          </div>
+
+              {top3.map(renderTraderRow)}
+
+              {restTraders.length === 0 ? null : loggedIn ? (
+                restTraders.map(renderTraderRow)
+              ) : (
+                <div className="rank-blur-wrap">
+                  <div className="rank-blurred">{restTraders.map(renderTraderRow)}</div>
+                  <div className="rank-blur-overlay">
+                    <div className="rank-blur-title">{r.blurTitle}</div>
+                    <div className="rank-blur-sub">{r.blurSub}</div>
+                    <Link href="/login" className="btn btn-primary">
+                      {r.joinCta}
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+            <p className="sub rank-methodology">{r.tradersMethodology}</p>
+          </>
         )}
       </section>
 
@@ -180,21 +202,29 @@ export default function RankingClient() {
           <div className="card" style={{ textAlign: "center", padding: 40 }}>
             <p className="sub" style={{ margin: 0 }}>{r.loading}</p>
           </div>
+        ) : companiesError ? (
+          <div className="card" style={{ textAlign: "center", padding: 40 }}>
+            <p style={{ fontWeight: 700, marginBottom: 6 }}>{r.errorTitle}</p>
+            <p className="sub" style={{ margin: 0 }}>{r.errorSub}</p>
+          </div>
         ) : companies.length === 0 ? (
           <div className="card" style={{ textAlign: "center", padding: 40 }}>
             <p style={{ fontWeight: 700, marginBottom: 6 }}>{r.companiesNotEnoughTitle}</p>
             <p className="sub" style={{ margin: 0 }}>{r.companiesNotEnoughSub}</p>
           </div>
         ) : (
-          <div className="rank-table">
-            <div className="rank-row rank-row-4col rank-head">
-              <span>#</span>
-              <span>{r.colCompanyName}</span>
-              <span>{r.colAvgDaysPay}</span>
-              <span>{r.colTotalCommunityWd}</span>
+          <>
+            <div className="rank-table">
+              <div className="rank-row rank-row-4col rank-head">
+                <span>#</span>
+                <span>{r.colCompanyName}</span>
+                <span>{r.colAvgDaysPay}</span>
+                <span>{r.colTotalCommunityWd}</span>
+              </div>
+              {companies.map(renderCompanyRow)}
             </div>
-            {companies.map(renderCompanyRow)}
-          </div>
+            <p className="sub rank-methodology">{r.companiesMethodology}</p>
+          </>
         )}
       </section>
 

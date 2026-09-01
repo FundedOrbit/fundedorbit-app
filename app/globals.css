@@ -192,6 +192,7 @@ a{color:inherit;text-decoration:none;}
   background:linear-gradient(180deg, rgba(10,14,31,.15), rgba(10,14,31,.85) 40%);
 }
 .rank-blur-title{font-size:15px;font-weight:700;color:var(--text-primary);}
+.rank-methodology{font-size:11.5px;color:var(--text-muted);margin-top:10px;text-align:center;}
 .rank-blur-sub{font-size:12.5px;color:var(--text-secondary);max-width:280px;}
 @media (max-width:600px){
   .rank-row{grid-template-columns:28px 1fr 50px 70px;}
