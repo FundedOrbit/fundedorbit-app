@@ -139,7 +139,14 @@ export default function AccountFormModal({ account, userId, allAccounts = [], on
   function updateWithdrawal(i, key, value) {
     setForm((f) => {
       const withdrawals = [...f.withdrawals];
-      withdrawals[i] = { ...withdrawals[i], [key]: value };
+      let updated = { ...withdrawals[i], [key]: value };
+      // si el usuario captura una fecha de recibido, el retiro ya se recibió:
+      // marcamos el estatus automáticamente aunque no lo haya cambiado a mano,
+      // para que cuente en las métricas sin pasos extra.
+      if (key === "receivedDate" && value && updated.status !== "denegado") {
+        updated = { ...updated, status: "recibido" };
+      }
+      withdrawals[i] = updated;
       return { ...f, withdrawals };
     });
   }

@@ -7,7 +7,7 @@ import { useLanguage } from "./LanguageProvider";
 import SiteNav from "./SiteNav";
 import SiteFooter from "./SiteFooter";
 import AuthAwareCta from "./AuthAwareCta";
-import { mockRankings, mockCompanyRankings } from "../lib/mockRankings";
+import { fetchTraderRankings, fetchCompanyRankings } from "../lib/rankingsClient";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 
@@ -16,6 +16,11 @@ export default function RankingClient() {
   const r = dict.ranking;
   const [loggedIn, setLoggedIn] = useState(false);
   const [checked, setChecked] = useState(false);
+
+  const [traders, setTraders] = useState([]);
+  const [tradersLoading, setTradersLoading] = useState(true);
+  const [companies, setCompanies] = useState([]);
+  const [companiesLoading, setCompaniesLoading] = useState(false);
 
   useEffect(() => {
     async function check() {
@@ -28,8 +33,44 @@ export default function RankingClient() {
     check();
   }, []);
 
-  const top3 = mockRankings.slice(0, 3);
-  const restTraders = mockRankings.slice(3);
+  useEffect(() => {
+    let active = true;
+    fetchTraderRankings()
+      .then((rows) => {
+        if (active) setTraders(rows);
+      })
+      .catch(() => {
+        if (active) setTraders([]);
+      })
+      .finally(() => {
+        if (active) setTradersLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!checked || !loggedIn) return;
+    let active = true;
+    setCompaniesLoading(true);
+    fetchCompanyRankings()
+      .then((rows) => {
+        if (active) setCompanies(rows);
+      })
+      .catch(() => {
+        if (active) setCompanies([]);
+      })
+      .finally(() => {
+        if (active) setCompaniesLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [checked, loggedIn]);
+
+  const top3 = traders.slice(0, 3);
+  const restTraders = traders.slice(3);
 
   function renderTraderRow(u) {
     return (
@@ -39,7 +80,10 @@ export default function RankingClient() {
           <span className="rank-avatar">{u.avatar}</span> {u.nickname}
         </span>
         <span>{u.country}</span>
-        <span className="positive">+{u.roi.toFixed(1)}%</span>
+        <span className={u.roi >= 0 ? "positive" : "negative"}>
+          {u.roi >= 0 ? "+" : ""}
+          {Number(u.roi).toFixed(1)}%
+        </span>
         <span>{u.withdrawals}</span>
       </div>
     );
@@ -50,7 +94,7 @@ export default function RankingClient() {
       <div className="rank-row rank-row-4col" key={c.rank}>
         <span className={c.rank <= 3 ? "rank-medal" : ""}>{c.rank <= 3 ? MEDALS[c.rank - 1] : c.rank}</span>
         <span className="rank-trader">{c.company}</span>
-        <span className="positive">{c.avgDaysToPay.toFixed(1)}d</span>
+        <span className="positive">{Number(c.avgDaysToPay).toFixed(1)}d</span>
         <span>{c.totalWithdrawals}</span>
       </div>
     );
@@ -66,7 +110,16 @@ export default function RankingClient() {
       </section>
 
       <section className="section" style={{ maxWidth: 760, margin: "0 auto" }}>
-        {!checked ? null : (
+        {!checked || tradersLoading ? (
+          <div className="card" style={{ textAlign: "center", padding: 40 }}>
+            <p className="sub" style={{ margin: 0 }}>{r.loading}</p>
+          </div>
+        ) : traders.length === 0 ? (
+          <div className="card" style={{ textAlign: "center", padding: 40 }}>
+            <p style={{ fontWeight: 700, marginBottom: 6 }}>{r.tradersNotEnoughTitle}</p>
+            <p className="sub" style={{ margin: 0 }}>{r.tradersNotEnoughSub}</p>
+          </div>
+        ) : (
           <div className="rank-table">
             <div className="rank-row rank-head">
               <span>#</span>
@@ -78,7 +131,7 @@ export default function RankingClient() {
 
             {top3.map(renderTraderRow)}
 
-            {loggedIn ? (
+            {restTraders.length === 0 ? null : loggedIn ? (
               restTraders.map(renderTraderRow)
             ) : (
               <div className="rank-blur-wrap">
@@ -110,7 +163,6 @@ export default function RankingClient() {
                   <span>{r.colAvgDaysPay}</span>
                   <span>{r.colTotalCommunityWd}</span>
                 </div>
-                {mockCompanyRankings.map(renderCompanyRow)}
               </div>
               <div className="rank-blur-overlay">
                 <div className="rank-blur-title">{r.companiesLockedTitle}</div>
@@ -121,10 +173,24 @@ export default function RankingClient() {
               </div>
             </div>
           </div>
-        ) : (
+        ) : companiesLoading ? (
+          <div className="card" style={{ textAlign: "center", padding: 40 }}>
+            <p className="sub" style={{ margin: 0 }}>{r.loading}</p>
+          </div>
+        ) : companies.length === 0 ? (
           <div className="card" style={{ textAlign: "center", padding: 40 }}>
             <p style={{ fontWeight: 700, marginBottom: 6 }}>{r.companiesNotEnoughTitle}</p>
             <p className="sub" style={{ margin: 0 }}>{r.companiesNotEnoughSub}</p>
+          </div>
+        ) : (
+          <div className="rank-table">
+            <div className="rank-row rank-row-4col rank-head">
+              <span>#</span>
+              <span>{r.colCompanyName}</span>
+              <span>{r.colAvgDaysPay}</span>
+              <span>{r.colTotalCommunityWd}</span>
+            </div>
+            {companies.map(renderCompanyRow)}
           </div>
         )}
       </section>
