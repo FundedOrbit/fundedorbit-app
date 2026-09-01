@@ -8,6 +8,7 @@ import SiteNav from "./SiteNav";
 import SiteFooter from "./SiteFooter";
 import AuthAwareCta from "./AuthAwareCta";
 import { fetchTraderRankings, fetchCompanyRankings } from "../lib/rankingsClient";
+import { countryNameToFlag } from "../lib/countries";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 
@@ -79,7 +80,7 @@ export default function RankingClient() {
         <span className="rank-trader">
           <span className="rank-avatar">{u.avatar}</span> {u.nickname}
         </span>
-        <span>{u.country}</span>
+        <span>{countryNameToFlag(u.country)}</span>
         <span className={u.roi >= 0 ? "positive" : "negative"}>
           {u.roi >= 0 ? "+" : ""}
           {Number(u.roi).toFixed(1)}%
@@ -94,7 +95,9 @@ export default function RankingClient() {
       <div className="rank-row rank-row-4col" key={c.rank}>
         <span className={c.rank <= 3 ? "rank-medal" : ""}>{c.rank <= 3 ? MEDALS[c.rank - 1] : c.rank}</span>
         <span className="rank-trader">{c.company}</span>
-        <span className="positive">{Number(c.avgDaysToPay).toFixed(1)}d</span>
+        <span className={c.avgDaysToPay != null ? "positive" : ""}>
+          {c.avgDaysToPay != null ? `${Number(c.avgDaysToPay).toFixed(1)}d` : "—"}
+        </span>
         <span>{c.totalWithdrawals}</span>
       </div>
     );
