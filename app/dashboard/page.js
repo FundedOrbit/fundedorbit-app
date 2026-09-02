@@ -9,6 +9,7 @@ import SiteNav from "../../components/SiteNav";
 import SiteFooter from "../../components/SiteFooter";
 import LineChartSVG from "../../components/LineChartSVG";
 import AccountFormModal from "../../components/AccountFormModal";
+import BulkAccountModal from "../../components/BulkAccountModal";
 import InsightsPanel from "../../components/InsightsPanel";
 import MilestonesBadges from "../../components/MilestonesBadges";
 import { syncInsights } from "../../lib/insightsSync";
@@ -84,6 +85,7 @@ export default function DashboardPage() {
 
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [showBulkForm, setShowBulkForm] = useState(false);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterCompany, setFilterCompany] = useState("all");
@@ -177,6 +179,11 @@ export default function DashboardPage() {
     });
     setShowForm(false);
     setEditing(null);
+  }
+
+  function handleBulkSaved(savedRows) {
+    setAllAccounts((prev) => [...savedRows, ...prev]);
+    setShowBulkForm(false);
   }
 
   async function handleDelete(id) {
@@ -387,6 +394,13 @@ export default function DashboardPage() {
             }}
           >
             {a.newAccount}
+          </button>
+          <button
+            className="btn btn-ghost"
+            onClick={() => setShowBulkForm(true)}
+            type="button"
+          >
+            {a.newAccountGroup}
           </button>
         </div>
       </div>
@@ -1151,6 +1165,15 @@ export default function DashboardPage() {
             setEditing(null);
           }}
           onSaved={handleSaved}
+        />
+      )}
+
+      {showBulkForm && (
+        <BulkAccountModal
+          userId={userId}
+          allAccounts={allAccounts}
+          onClose={() => setShowBulkForm(false)}
+          onSaved={handleBulkSaved}
         />
       )}
 
