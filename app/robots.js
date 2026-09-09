@@ -4,7 +4,7 @@ export default function robots() {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/dashboard", "/accounts", "/login", "/onboarding", "/reset-password"],
+        disallow: ["/dashboard", "/accounts", "/login", "/onboarding", "/reset-password", "/moneda-cosmica-9f3kq2.html"],
       },
     ],
     sitemap: "https://fundedorbit.com/sitemap.xml",
