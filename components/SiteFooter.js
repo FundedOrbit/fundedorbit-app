@@ -25,6 +25,17 @@ export default function SiteFooter() {
           📷 {f.followInstagram}
         </a>
       </div>
+      <div className="footer-donate">
+        <div className="footer-donate-text">{f.donateText}</div>
+        <a
+          href="https://www.paypal.com/ncp/payment/RSGYMT96ELSE8"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn footer-donate-btn"
+        >
+          {f.donateBtn}
+        </a>
+      </div>
       <div className="footer-rights">{f.rights}</div>
     </div>
   );

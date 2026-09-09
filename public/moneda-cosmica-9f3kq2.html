@@ -62,8 +62,27 @@
     100%{ background-position:300% 50%; }
   }
 
+  .brand-coin{
+    width:52px; height:52px;
+    margin:0 auto;
+    border-radius:50%;
+    background:
+      radial-gradient(circle at 32% 28%, var(--gold-1) 0%, var(--gold-2) 30%, var(--gold-3) 65%, var(--gold-4) 100%);
+    box-shadow:
+      0 0 0 3px #8a5a00 inset,
+      0 0 0 5px rgba(255,231,150,0.6) inset,
+      0 4px 18px rgba(0,0,0,0.5),
+      0 0 30px rgba(255,215,107,0.45);
+    animation:coinFloat 3.4s ease-in-out infinite;
+  }
+
+  @keyframes coinFloat{
+    0%,100%{ transform:translateY(0) scale(1); }
+    50%{ transform:translateY(-4px) scale(1.03); }
+  }
+
   .tagline{
-    margin:4px 0 0;
+    margin:14px 0 0;
     font-size:13px;
     letter-spacing:4px;
     text-transform:uppercase;
@@ -84,8 +103,9 @@
     flex-direction:column;
     align-items:center;
     justify-content:center;
-    gap:28px;
+    gap:20px;
     perspective:1400px;
+    padding:24px 0;
   }
 
   .coin-wrap{
@@ -218,6 +238,17 @@
     transform:scale(1);
   }
 
+  .result-idle{
+    font-size:13px;
+    letter-spacing:1px;
+    color:#6b6690;
+    transition:opacity .25s ease;
+  }
+  .result-idle.hide{
+    opacity:0;
+    pointer-events:none;
+  }
+
   .result-text.buy{
     color:var(--buy);
     text-shadow:0 0 20px rgba(57,255,138,0.8), 0 0 60px rgba(57,255,138,0.4);
@@ -301,6 +332,22 @@
   }
   .btn-fo:hover{ transform:translateY(-2px); box-shadow:0 0 30px rgba(255,215,107,0.55); }
 
+  .donate-block{
+    margin-top:26px;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+  }
+  .donate-text{ margin:0; font-size:12px; color:#6b6690; }
+  .btn-donate{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:10px 22px; font-size:12.5px; font-weight:700;
+    color:#3a2900; text-decoration:none;
+    background:linear-gradient(135deg, #ffe9a8, #ffc94d);
+    border-radius:999px;
+    box-shadow:0 2px 14px rgba(255,201,77,.35);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .btn-donate:hover{ transform:translateY(-2px); box-shadow:0 4px 20px rgba(255,201,77,.5); }
+
   @media (max-width:480px){
     .coin, .coin-wrap{ width:190px; height:190px; }
     .coin-symbol{ font-size:50px; }
@@ -313,7 +360,7 @@
 
 <div class="app">
   <header>
-    <h1 class="brand">🪙</h1>
+    <div class="brand-coin" aria-hidden="true"></div>
     <p class="tagline">El Oráculo Cósmico del Mercado</p>
     <p class="subtitle">Gira la moneda y deja que el universo decida tu próximo movimiento. 50/50, sin trampas, pura probabilidad estelar.</p>
   </header>
@@ -337,6 +384,7 @@
 
     <div class="result">
       <div class="result-text" id="resultText"></div>
+      <div class="result-idle" id="resultIdle">Presiona GIRAR para conocer la señal</div>
     </div>
 
     <div class="stats">
@@ -357,6 +405,13 @@
       <p class="fo-promo-title">¿Ya inviertes en fondeo? Deja de operar a ciegas.</p>
       <p class="fo-promo-body">Únete gratis a FundedOrbit y controla tus cuentas, tu ROI real y tus próximas renovaciones en un solo lugar — sin tarjeta de crédito.</p>
       <a class="btn-fo" href="/" target="_blank" rel="noopener">🛰️ Lleva tu control de empresas de fondeo</a>
+    </div>
+
+    <div class="donate-block">
+      <p class="donate-text">¿Te divertiste con la moneda cósmica?</p>
+      <a class="btn-donate" href="https://www.paypal.com/ncp/payment/RSGYMT96ELSE8" target="_blank" rel="noopener noreferrer">
+        💛 Invítanos un café
+      </a>
     </div>
   </div>
 
@@ -582,9 +637,12 @@
     return arr[0] % 2 === 0 ? 'COMPRAR' : 'VENDER';
   }
 
+  const resultIdle = document.getElementById('resultIdle');
+
   spinBtn.addEventListener('click', () => {
     if(spinBtn.disabled) return;
 
+    resultIdle.classList.add('hide');
     ensureAudio();
     const outcome = cryptoCoinFlip();
 
