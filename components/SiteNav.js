@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useLanguage } from "./LanguageProvider";
 import LangToggle from "./LangToggle";
-import CouponsLink from "./CouponsLink";
 
 export default function SiteNav({ rightSlot, showAnchors, showDiscord }) {
   const [open, setOpen] = useState(false);
@@ -34,7 +33,7 @@ export default function SiteNav({ rightSlot, showAnchors, showDiscord }) {
               {dict.nav.discord}
             </a>
           )}
-          <CouponsLink>{dict.nav.coupons}</CouponsLink>
+          <Link href="/cupones">{dict.nav.coupons}</Link>
           <Link href="/ranking">{dict.ranking.navLabel}</Link>
           <Link href="/como-usar">{dict.nav.howToUse}</Link>
         </div>
@@ -73,7 +72,9 @@ export default function SiteNav({ rightSlot, showAnchors, showDiscord }) {
               {dict.nav.discord}
             </a>
           )}
-          <CouponsLink className="mobile-menu-link">{dict.nav.coupons}</CouponsLink>
+          <Link href="/cupones" className="mobile-menu-link" onClick={close}>
+            {dict.nav.coupons}
+          </Link>
           <Link href="/ranking" className="mobile-menu-link" onClick={close}>
             {dict.ranking.navLabel}
           </Link>

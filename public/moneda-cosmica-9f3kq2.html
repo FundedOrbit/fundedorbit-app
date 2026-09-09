@@ -20,9 +20,10 @@
   *{ box-sizing:border-box; }
 
   html,body{
-    margin:0; padding:0; width:100%; height:100%;
+    margin:0; padding:0; width:100%; min-height:100%;
     background:#04030a;
-    overflow:hidden;
+    overflow-x:hidden;
+    overflow-y:auto;
     font-family:'Segoe UI', system-ui, -apple-system, sans-serif;
   }
 
@@ -32,9 +33,9 @@
 
   .app{
     position:relative; z-index:2;
-    width:100%; height:100vh;
+    width:100%; min-height:100vh;
     display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
-    padding:28px 16px 40px;
+    padding:28px 16px 48px;
     text-align:center;
   }
 
@@ -271,8 +272,24 @@
   .mute-btn:hover{ background:rgba(255,255,255,0.12); }
   #volumeSlider{ width:90px; accent-color:#8a5cff; cursor:pointer; }
 
+  .fo-promo{
+    margin-top:24px;
+    max-width:360px;
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+  }
+  .fo-promo-title{
+    margin:0;
+    font-size:15px; font-weight:800;
+    color:#ded8ff;
+  }
+  .fo-promo-body{
+    margin:0 0 4px;
+    font-size:12.5px; line-height:1.5;
+    color:#8f8ab0;
+  }
+
   .btn-fo{
-    margin-top:20px;
+    margin-top:2px;
     display:inline-flex; align-items:center; gap:8px;
     padding:13px 28px; font-size:12.5px; font-weight:800; letter-spacing:1px;
     text-transform:uppercase;
@@ -336,7 +353,11 @@
       </div>
     </div>
 
-    <a class="btn-fo" href="/" target="_blank" rel="noopener">🛰️ Lleva tu control de empresas de fondeo</a>
+    <div class="fo-promo">
+      <p class="fo-promo-title">¿Ya inviertes en fondeo? Deja de operar a ciegas.</p>
+      <p class="fo-promo-body">Únete gratis a FundedOrbit y controla tus cuentas, tu ROI real y tus próximas renovaciones en un solo lugar — sin tarjeta de crédito.</p>
+      <a class="btn-fo" href="/" target="_blank" rel="noopener">🛰️ Lleva tu control de empresas de fondeo</a>
+    </div>
   </div>
 
   <footer>Generado con aleatoriedad criptográfica · No es consejo financiero</footer>

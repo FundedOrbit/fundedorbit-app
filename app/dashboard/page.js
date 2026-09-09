@@ -40,6 +40,35 @@ function fmtDays(n) {
   return n == null ? "—" : Math.round(n) + "d";
 }
 
+// Posiciona el tooltip de las barras del flujo de caja dinámicamente para que
+// nunca se corte contra el borde del contenedor con scroll, sin importar qué
+// tan cerca esté la barra del principio, la mitad o el final de la gráfica.
+function handleBarTooltipHover(e) {
+  const bar = e.currentTarget;
+  const tooltip = bar.querySelector(".bar-tooltip");
+  const container = bar.closest(".bars-row");
+  if (!tooltip || !container) return;
+
+  tooltip.style.left = "50%";
+  tooltip.style.right = "auto";
+  tooltip.style.transform = "translateX(-50%) translateY(-10px)";
+
+  const contRect = container.getBoundingClientRect();
+  const tipRect = tooltip.getBoundingClientRect();
+  const overflowLeft = contRect.left - tipRect.left;
+  const overflowRight = tipRect.right - contRect.right;
+
+  if (overflowLeft > 0) {
+    tooltip.style.left = "0";
+    tooltip.style.right = "auto";
+    tooltip.style.transform = "translateY(-10px)";
+  } else if (overflowRight > 0) {
+    tooltip.style.left = "auto";
+    tooltip.style.right = "0";
+    tooltip.style.transform = "translateY(-10px)";
+  }
+}
+
 const STATUS_COLORS = {
   activa: "var(--accent-purple)",
   pasada: "var(--accent-cyan)",
@@ -742,6 +771,7 @@ export default function DashboardPage() {
                                 className="bar invest"
                                 style={{ height: `${(mo.invertido / maxMonthly) * 130}px` }}
                                 title={`${a.kpiInvested}: ${fmtMoney(mo.invertido)}`}
+                                onMouseEnter={handleBarTooltipHover}
                               >
                                 <span className="bar-tooltip">{fmtMoney(mo.invertido)}</span>
                               </div>
@@ -749,6 +779,7 @@ export default function DashboardPage() {
                                 className="bar withdraw"
                                 style={{ height: `${(mo.retirado / maxMonthly) * 130}px` }}
                                 title={`${a.kpiWithdrawn}: ${fmtMoney(mo.retirado)}`}
+                                onMouseEnter={handleBarTooltipHover}
                               >
                                 <span className="bar-tooltip">{fmtMoney(mo.retirado)}</span>
                               </div>
