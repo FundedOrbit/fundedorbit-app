@@ -131,6 +131,8 @@ a{color:inherit;text-decoration:none;}
   background:var(--card-bg-2);color:var(--text-primary);font-size:14px;outline:none;
 }
 .field input:focus,.field select:focus{border-color:var(--accent-purple);}
+.field-hint{font-size:12px;margin-top:6px;line-height:1.4;}
+.field-hint-warn{color:var(--accent-orange,#f0a020);}
 .divider{display:flex;align-items:center;gap:12px;color:var(--text-muted);font-size:12px;margin:18px 0;}
 .divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--card-border);}
 .msg{font-size:13px;padding:10px 12px;border-radius:10px;margin-bottom:14px;}

@@ -82,7 +82,12 @@ export default function AccountFormModal({ account, userId, allAccounts = [], on
   );
 
   function set(key, value) {
-    setForm((f) => ({ ...f, [key]: value }));
+    setForm((f) => {
+      if (key === "status" && value === "pasada" && !f.passed_date) {
+        return { ...f, status: value, passed_date: new Date().toISOString().slice(0, 10) };
+      }
+      return { ...f, [key]: value };
+    });
   }
 
   function addReset() {
@@ -160,6 +165,11 @@ export default function AccountFormModal({ account, userId, allAccounts = [], on
 
     if (form.cancelled && !form.cancelled_date) {
       setError(a.errCancelledDateRequired || "Ingresa la fecha de cancelación.");
+      return;
+    }
+
+    if (form.status === "pasada" && !form.passed_date) {
+      setError(a.errPassedDateRequired || "Ingresa la fecha en la que se pasó la cuenta.");
       return;
     }
 
@@ -272,8 +282,16 @@ export default function AccountFormModal({ account, userId, allAccounts = [], on
               <input type="number" step="0.01" value={form.activation_fee} onChange={(e) => set("activation_fee", e.target.value)} placeholder={a.fieldActivationFeePlaceholder} />
             </div>
             <div className="field">
-              <label>{a.fieldPassedDate}</label>
-              <input type="date" value={form.passed_date} onChange={(e) => set("passed_date", e.target.value)} />
+              <label>{a.fieldPassedDate}{form.status === "pasada" ? " *" : ""}</label>
+              <input
+                type="date"
+                value={form.passed_date}
+                onChange={(e) => set("passed_date", e.target.value)}
+                required={form.status === "pasada"}
+              />
+              {form.status === "pasada" && !form.passed_date && (
+                <div className="field-hint field-hint-warn">{a.passedDateHint}</div>
+              )}
             </div>
             <div className="field">
               <label className="field-label-row">
