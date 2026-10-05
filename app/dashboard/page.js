@@ -495,7 +495,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="kpi-card">
                     <div className="label">{a.kpiWithdrawn}</div>
-                    <div className="value">{fmtMoney(stats.totalRetirado)}</div>
+                    <div className="value" style={{ color: "var(--success)" }}>{fmtMoney(stats.totalRetirado)}</div>
                     <div className="sub">{a.kpiWithdrawnSub}</div>
                   </div>
                   <div className={`kpi-card ${stats.netProfit >= 0 ? "positive" : "negative"}`}>
@@ -522,7 +522,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="kpi-card">
                     <div className="label">{a.kpiAvgWithdrawal}</div>
-                    <div className="value">{fmtMoney(stats.retiroPromedio)}</div>
+                    <div className="value" style={{ color: "var(--success)" }}>{fmtMoney(stats.retiroPromedio)}</div>
                     <div className="sub">{a.kpiAvgWithdrawalSub}</div>
                   </div>
                   <div className="kpi-card">
@@ -750,9 +750,9 @@ export default function DashboardPage() {
                 </div>
                 <div className="chart-card stat-chart-card">
                   <h3>{d.chartWithdrawals}</h3>
-                  <div className="big-stat">{fmtMoney(lastInc)}</div>
+                  <div className="big-stat" style={{ color: "var(--success)" }}>{fmtMoney(lastInc)}</div>
                   <div className="stat-sub">{d.chartWithdrawalsSub}</div>
-                  <LineChartSVG series={timeline.incomeSeries} color="#22d3ee" />
+                  <LineChartSVG series={timeline.incomeSeries} color="#34d399" />
                 </div>
               </div>
 
@@ -790,7 +790,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="chart-legend">
                         <span><i style={{ background: "var(--accent-pink)" }} /> {a.kpiInvested}</span>
-                        <span><i style={{ background: "var(--accent-cyan)" }} /> {a.kpiWithdrawn}</span>
+                        <span><i style={{ background: "var(--success)" }} /> {a.kpiWithdrawn}</span>
                       </div>
                     </>
                   )}

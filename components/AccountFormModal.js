@@ -151,6 +151,12 @@ export default function AccountFormModal({ account, userId, allAccounts = [], on
       if (key === "receivedDate" && value && updated.status !== "denegado") {
         updated = { ...updated, status: "recibido" };
       }
+      // y al revés: si el usuario marca el estatus como recibido a mano sin
+      // poner la fecha, se la llenamos con hoy (editable) para que no se
+      // pierda del flujo de caja mensual ni de las gráficas acumuladas.
+      if (key === "status" && value === "recibido" && !updated.receivedDate) {
+        updated = { ...updated, receivedDate: new Date().toISOString().slice(0, 10) };
+      }
       withdrawals[i] = updated;
       return { ...f, withdrawals };
     });
@@ -170,6 +176,12 @@ export default function AccountFormModal({ account, userId, allAccounts = [], on
 
     if (form.status === "pasada" && !form.passed_date) {
       setError(a.errPassedDateRequired || "Ingresa la fecha en la que se pasó la cuenta.");
+      return;
+    }
+
+    const badWithdrawal = form.withdrawals.find((w) => w.status === "recibido" && !w.receivedDate);
+    if (badWithdrawal) {
+      setError(a.errReceivedDateRequired || "Ingresa la fecha en la que se recibió el retiro.");
       return;
     }
 
@@ -420,8 +432,13 @@ export default function AccountFormModal({ account, userId, allAccounts = [], on
                   <input type="date" value={w.requestDate || ""} onChange={(e) => updateWithdrawal(i, "requestDate", e.target.value)} />
                 </div>
                 <div className="field">
-                  <label>{a.wdReceivedDate}</label>
-                  <input type="date" value={w.receivedDate || ""} onChange={(e) => updateWithdrawal(i, "receivedDate", e.target.value)} />
+                  <label>{a.wdReceivedDate}{w.status === "recibido" ? " *" : ""}</label>
+                  <input
+                    type="date"
+                    value={w.receivedDate || ""}
+                    onChange={(e) => updateWithdrawal(i, "receivedDate", e.target.value)}
+                    required={w.status === "recibido"}
+                  />
                 </div>
                 <div className="field" style={{ gridColumn: "1 / -1" }}>
                   <label>{a.wdLink}</label>
