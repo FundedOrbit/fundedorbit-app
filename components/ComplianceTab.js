@@ -21,12 +21,12 @@ function fillText(tpl, vars) {
   return Object.entries(vars).reduce((t, [k, v]) => t.replace(`{${k}}`, v), tpl);
 }
 
-function majorityText(c, maj, pos, neg) {
-  const total = pos + neg;
+function majorityText(c, maj, pos, neg, be, total) {
   if (!maj) return c.majNone;
   if (maj === "positive") return fillText(c.majPositive, { a: pos, t: total });
   if (maj === "negative") return fillText(c.majNegative, { a: neg, t: total });
-  return fillText(c.majTie, { a: pos, t: total });
+  if (maj === "breakeven") return fillText(c.majBreakeven, { a: be, t: total });
+  return c.majTie;
 }
 
 export default function ComplianceTab({ userId }) {
@@ -164,18 +164,18 @@ export default function ComplianceTab({ userId }) {
             <div className="kpi-card">
               <div className="label">{c.results}</div>
               <div className="value">{learnings.total} <span className="value-sep" style={{ fontSize: 14 }}>{c.daysLogged.toLowerCase()}</span></div>
-              <div className="sub">{fillText(c.resultsSub, { p: learnings.pos, n: learnings.neg })}</div>
+              <div className="sub">{fillText(c.resultsSub, { p: learnings.pos, b: learnings.be, n: learnings.neg })}</div>
             </div>
             <div className="kpi-card">
               <div className="label">{c.whenFollow}</div>
               <div className={`value cmp-maj ${learnings.followedMajority || ""}`}>
-                {majorityText(c, learnings.followedMajority, learnings.followedPos, learnings.followedNeg)}
+                {majorityText(c, learnings.followedMajority, learnings.followedPos, learnings.followedNeg, learnings.followedBe, learnings.followedTotal)}
               </div>
             </div>
             <div className="kpi-card">
               <div className="label">{c.whenBreak}</div>
               <div className={`value cmp-maj ${learnings.brokeMajority || ""}`}>
-                {majorityText(c, learnings.brokeMajority, learnings.brokePos, learnings.brokeNeg)}
+                {majorityText(c, learnings.brokeMajority, learnings.brokePos, learnings.brokeNeg, learnings.brokeBe, learnings.brokeTotal)}
               </div>
             </div>
           </div>
@@ -260,7 +260,7 @@ export default function ComplianceTab({ userId }) {
               >
                 <span className="cal-num">{d}</span>
                 {rec ? (
-                  <span className={`cal-sticker cal-dot-result ${rec.result === "positive" ? "pos" : "neg"}`} />
+                  <span className={`cal-sticker cal-dot-result ${rec.result === "positive" ? "pos" : rec.result === "breakeven" ? "be" : "neg"}`} />
                 ) : (
                   !future && (
                     <span className="cal-add">
@@ -278,6 +278,7 @@ export default function ComplianceTab({ userId }) {
           <span><i className="cal-dot ok" /> {c.legendFollowed}</span>
           <span><i className="cal-dot bad" /> {c.legendBroke}</span>
           <span><i className="cal-circle pos" /> {c.legendPositive}</span>
+          <span><i className="cal-circle be" /> {c.legendBreakeven}</span>
           <span><i className="cal-circle neg" /> {c.legendNegative}</span>
         </div>
       </div>
@@ -407,6 +408,7 @@ function DayModal({ userId, day, record, rules, days, onRulesSaved, onClose, onS
         <div className="section-label">{c.resultQ}</div>
         <div className="cmp-choice">
           <button type="button" className={`cmp-choice-btn pos ${result === "positive" ? "active" : ""}`} onClick={() => setResult("positive")}><i className="cal-circle pos" /> {c.positive}</button>
+          <button type="button" className={`cmp-choice-btn be ${result === "breakeven" ? "active" : ""}`} onClick={() => setResult("breakeven")}><i className="cal-circle be" /> {c.breakeven}</button>
           <button type="button" className={`cmp-choice-btn neg ${result === "negative" ? "active" : ""}`} onClick={() => setResult("negative")}><i className="cal-circle neg" /> {c.negative}</button>
         </div>
 

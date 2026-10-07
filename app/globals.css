@@ -570,3 +570,7 @@ a{color:inherit;text-decoration:none;}
 .cal-circle{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px;}
 .cal-sticker.cal-dot-result{right:8px;bottom:8px;line-height:0;}
 @media (max-width:600px){.cal-dot-result{width:12px;height:12px;}.cal-sticker.cal-dot-result{right:5px;bottom:5px;}}
+.cal-dot-result.be,.cal-circle.be{background:var(--warning);box-shadow:0 0 0 2px rgba(251,191,36,.35);}
+.cmp-choice-btn.be.active{background:rgba(251,191,36,.18);border-color:var(--warning);}
+.cmp-choice-btn{display:flex;align-items:center;justify-content:center;gap:2px;}
+@media (max-width:480px){.cmp-choice{flex-wrap:wrap;}.cmp-choice-btn{flex:1 1 100%;}}
