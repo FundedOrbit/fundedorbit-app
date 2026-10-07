@@ -56,6 +56,7 @@ export default function ComplianceTab({ userId }) {
         setRules(r);
         setDays(d);
       } catch (e) {
+        console.error("compliance load error", e);
         if (alive) setLoadError(true);
       } finally {
         if (alive) setLoading(false);
@@ -111,7 +112,12 @@ export default function ComplianceTab({ userId }) {
 
   return (
     <div className="compliance-wrap">
-      {loadError && <div className="msg err">{c.errLoad}</div>}
+      {loadError && (
+        <div className="msg err" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <span>{c.errLoad}</span>
+          <button type="button" className="btn btn-ghost" onClick={() => window.location.reload()}>{c.reload}</button>
+        </div>
+      )}
 
       <div className="card compliance-intro">
         <h3>{c.introTitle}</h3>
