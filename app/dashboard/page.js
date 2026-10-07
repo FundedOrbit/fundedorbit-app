@@ -10,6 +10,7 @@ import SiteFooter from "../../components/SiteFooter";
 import LineChartSVG from "../../components/LineChartSVG";
 import AccountFormModal from "../../components/AccountFormModal";
 import BulkAccountModal from "../../components/BulkAccountModal";
+import ComplianceTab from "../../components/ComplianceTab";
 import InsightsPanel from "../../components/InsightsPanel";
 import MilestonesBadges from "../../components/MilestonesBadges";
 import { syncInsights } from "../../lib/insightsSync";
@@ -408,8 +409,15 @@ export default function DashboardPage() {
           >
             {a.title}
           </button>
+          <button
+            type="button"
+            className={`tab-btn ${tab === "cumplimiento" ? "active" : ""}`}
+            onClick={() => setTab("cumplimiento")}
+          >
+            {dict.compliance.tab}
+          </button>
         </div>
-        <div className="app-toolbar-actions">
+        <div className="app-toolbar-actions" style={tab === "cumplimiento" ? { display: "none" } : undefined}>
           {tab === "cuentas" && allAccounts.length > 0 && (
             <button className="btn btn-ghost" onClick={handleExportCsv}>
               {a.exportCsv}
@@ -1063,6 +1071,10 @@ export default function DashboardPage() {
             </>
           )}
         </>
+      ) : tab === "cumplimiento" ? (
+        <section style={{ paddingTop: 20 }}>
+          <ComplianceTab userId={userId} />
+        </section>
       ) : (
         <section style={{ padding: "0 0 40px" }}>
           {allAccounts.length === 0 ? (
