@@ -556,3 +556,17 @@ a{color:inherit;text-decoration:none;}
   .cmp-bar-row{grid-template-columns:1fr auto;}
   .cmp-bar-track{grid-column:1 / -1;order:3;}
 }
+.rules-overlay{z-index:60;}
+.cal-add{position:absolute;left:6px;right:6px;bottom:5px;font-size:11px;font-weight:600;color:var(--accent-purple);line-height:1.2;}
+.cal-add-short{display:none;}
+@media (max-width:600px){
+  .cal-add{left:4px;bottom:3px;font-size:15px;}
+  .cal-add-full{display:none;}
+  .cal-add-short{display:inline;}
+}
+.cal-dot-result{width:16px;height:16px;border-radius:50%;font-size:0;}
+.cal-dot-result.pos,.cal-circle.pos{background:var(--success);box-shadow:0 0 0 2px rgba(52,211,153,.35);}
+.cal-dot-result.neg,.cal-circle.neg{background:var(--danger);box-shadow:0 0 0 2px rgba(251,113,133,.35);}
+.cal-circle{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px;}
+.cal-sticker.cal-dot-result{right:8px;bottom:8px;line-height:0;}
+@media (max-width:600px){.cal-dot-result{width:12px;height:12px;}.cal-sticker.cal-dot-result{right:5px;bottom:5px;}}

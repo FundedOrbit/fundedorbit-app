@@ -7,8 +7,9 @@ import {
   isoFromParts,
   todayLocalISO,
   fetchRules,
-  addRule,
+  insertRules,
   deleteRule,
+  updateDayBrokenRules,
   fetchDays,
   saveDay,
   deleteDay,
@@ -45,6 +46,7 @@ export default function ComplianceTab({ userId }) {
   const [viewYear, setViewYear] = useState(now.getFullYear());
   const [viewMonth, setViewMonth] = useState(now.getMonth());
   const [selectedDay, setSelectedDay] = useState(null);
+  const [showRules, setShowRules] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
@@ -86,6 +88,12 @@ export default function ComplianceTab({ userId }) {
   function handleSaved(row) {
     setDays((prev) => [...prev.filter((x) => x.day !== row.day), row].sort((a, b) => a.day.localeCompare(b.day)));
     setSelectedDay(null);
+  }
+  function handleRulesSaved(newRules, updatedDays) {
+    setRules(newRules);
+    if (updatedDays.length) {
+      setDays((prev) => prev.map((d) => updatedDays.find((u) => u.id === d.id) || d));
+    }
   }
   function handleDeleted(id) {
     setDays((prev) => prev.filter((x) => x.id !== id));
@@ -212,7 +220,11 @@ export default function ComplianceTab({ userId }) {
         </>
       )}
 
-      <h2 className="section-title" style={{ marginTop: 30 }}>{c.calendarTitle}</h2>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap", marginTop: 30 }}>
+        <h2 className="section-title" style={{ margin: 0 }}>{c.calendarTitle}</h2>
+        <button type="button" className="btn btn-ghost" onClick={() => setShowRules(true)}>⚙ {c.editRules}</button>
+      </div>
+      <div style={{ height: 12 }} />
       <div className="card">
         <div className="cal-nav">
           <button type="button" className="btn btn-ghost" onClick={() => goMonth(-1)} aria-label={c.prev}>‹</button>
@@ -247,7 +259,16 @@ export default function ComplianceTab({ userId }) {
                 onClick={() => setSelectedDay(iso)}
               >
                 <span className="cal-num">{d}</span>
-                {rec && <span className="cal-sticker">{rec.result === "positive" ? "📈" : "📉"}</span>}
+                {rec ? (
+                  <span className={`cal-sticker cal-dot-result ${rec.result === "positive" ? "pos" : "neg"}`} />
+                ) : (
+                  !future && (
+                    <span className="cal-add">
+                      <span className="cal-add-full">+ {c.addRecord}</span>
+                      <span className="cal-add-short">+</span>
+                    </span>
+                  )
+                )}
               </button>
             );
           })}
@@ -256,10 +277,20 @@ export default function ComplianceTab({ userId }) {
         <div className="cal-legend">
           <span><i className="cal-dot ok" /> {c.legendFollowed}</span>
           <span><i className="cal-dot bad" /> {c.legendBroke}</span>
-          <span>📈 {c.legendPositive}</span>
-          <span>📉 {c.legendNegative}</span>
+          <span><i className="cal-circle pos" /> {c.legendPositive}</span>
+          <span><i className="cal-circle neg" /> {c.legendNegative}</span>
         </div>
       </div>
+
+      {showRules && (
+        <RulesModal
+          userId={userId}
+          rules={rules}
+          days={days}
+          onClose={() => setShowRules(false)}
+          onSaved={handleRulesSaved}
+        />
+      )}
 
       {selectedDay && (
         <DayModal
@@ -267,7 +298,8 @@ export default function ComplianceTab({ userId }) {
           day={selectedDay}
           record={dayMap[selectedDay]}
           rules={rules}
-          setRules={setRules}
+          days={days}
+          onRulesSaved={handleRulesSaved}
           onClose={() => setSelectedDay(null)}
           onSaved={handleSaved}
           onDeleted={handleDeleted}
@@ -277,14 +309,13 @@ export default function ComplianceTab({ userId }) {
   );
 }
 
-function DayModal({ userId, day, record, rules, setRules, onClose, onSaved, onDeleted }) {
+function DayModal({ userId, day, record, rules, days, onRulesSaved, onClose, onSaved, onDeleted }) {
   const { dict } = useLanguage();
   const c = dict.compliance;
   const [broken, setBroken] = useState(Array.isArray(record?.broken_rules) ? record.broken_rules : []);
   const [result, setResult] = useState(record?.result || "");
   const [mood, setMood] = useState(record?.mood || "");
   const [note, setNote] = useState(record?.note || "");
-  const [newRule, setNewRule] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -292,27 +323,11 @@ function DayModal({ userId, day, record, rules, setRules, onClose, onSaved, onDe
     setBroken((b) => (b.includes(name) ? b.filter((x) => x !== name) : [...b, name]));
   }
 
-  async function handleAddRule() {
-    const name = newRule.trim();
-    if (!name) return;
-    if (rules.some((r) => r.name.toLowerCase() === name.toLowerCase())) {
-      setNewRule("");
-      return;
-    }
-    try {
-      const row = await addRule(userId, name);
-      setRules((r) => [...r, row]);
-      setNewRule("");
-    } catch (e) {
-      setError(e.message || String(e));
-    }
-  }
-  async function handleRemoveRule(rule) {
-    try {
-      await deleteRule(rule.id);
-      setRules((r) => r.filter((x) => x.id !== rule.id));
-    } catch (e) {
-      setError(e.message || String(e));
+  const [showRules, setShowRules] = useState(false);
+  function handleRulesSaved(newRules, updatedDays, renames) {
+    onRulesSaved(newRules, updatedDays);
+    if (renames && Object.keys(renames).length) {
+      setBroken((b) => b.map((n) => renames[n] || n));
     }
   }
 
@@ -359,9 +374,17 @@ function DayModal({ userId, day, record, rules, setRules, onClose, onSaved, onDe
         <h2 style={{ marginTop: 0 }}>{c.modalTitle} · {day}</h2>
         {error && <div className="msg err">{error}</div>}
 
-        <div className="section-label">{c.followedQ}</div>
-        <p className="sub" style={{ marginTop: 0 }}>{c.rulesHelp}</p>
-        {rules.length === 0 && orphanBroken.length === 0 && <p className="sub">{c.noRules}</p>}
+        <div className="section-label" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+          <span>{c.followedQ}</span>
+          <button type="button" className="text-link" onClick={() => setShowRules(true)}>
+            {rules.length === 0 ? c.addRulesBtn : `⚙ ${c.editRules}`}
+          </button>
+        </div>
+        {rules.length === 0 && orphanBroken.length === 0 ? (
+          <p className="sub">{c.noRules}</p>
+        ) : (
+          <p className="sub" style={{ marginTop: 0 }}>{c.rulesHelp}</p>
+        )}
         <div className="cmp-rule-list">
           {rules.map((r) => (
             <div className={`cmp-rule ${broken.includes(r.name) ? "broken" : ""}`} key={r.id}>
@@ -369,7 +392,6 @@ function DayModal({ userId, day, record, rules, setRules, onClose, onSaved, onDe
                 <input type="checkbox" checked={broken.includes(r.name)} onChange={() => toggleRule(r.name)} />
                 <span>{r.name}</span>
               </label>
-              <button type="button" className="dyn-remove-inline" title={c.removeRule} onClick={() => handleRemoveRule(r)}>✕</button>
             </div>
           ))}
           {orphanBroken.map((name) => (
@@ -381,20 +403,11 @@ function DayModal({ userId, day, record, rules, setRules, onClose, onSaved, onDe
             </div>
           ))}
         </div>
-        <div className="cmp-add-rule">
-          <input
-            value={newRule}
-            placeholder={c.newRulePlaceholder}
-            onChange={(e) => setNewRule(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddRule(); } }}
-          />
-          <button type="button" className="btn btn-ghost" onClick={handleAddRule}>{c.addRule}</button>
-        </div>
 
         <div className="section-label">{c.resultQ}</div>
         <div className="cmp-choice">
-          <button type="button" className={`cmp-choice-btn pos ${result === "positive" ? "active" : ""}`} onClick={() => setResult("positive")}>📈 {c.positive}</button>
-          <button type="button" className={`cmp-choice-btn neg ${result === "negative" ? "active" : ""}`} onClick={() => setResult("negative")}>📉 {c.negative}</button>
+          <button type="button" className={`cmp-choice-btn pos ${result === "positive" ? "active" : ""}`} onClick={() => setResult("positive")}><i className="cal-circle pos" /> {c.positive}</button>
+          <button type="button" className={`cmp-choice-btn neg ${result === "negative" ? "active" : ""}`} onClick={() => setResult("negative")}><i className="cal-circle neg" /> {c.negative}</button>
         </div>
 
         <div className="section-label">{c.moodQ}</div>
@@ -418,6 +431,107 @@ function DayModal({ userId, day, record, rules, setRules, onClose, onSaved, onDe
           ) : <span />}
           <button type="button" className="btn btn-primary" onClick={handleSave} disabled={saving}>
             {saving ? c.saving : c.save}
+          </button>
+        </div>
+      </div>
+      {showRules && (
+        <RulesModal
+          userId={userId}
+          rules={rules}
+          days={days}
+          onClose={() => setShowRules(false)}
+          onSaved={handleRulesSaved}
+        />
+      )}
+    </div>
+  );
+}
+
+function RulesModal({ userId, rules, days, onClose, onSaved }) {
+  const { dict } = useLanguage();
+  const c = dict.compliance;
+  const [items, setItems] = useState(
+    rules.length ? rules.map((r) => ({ id: r.id, name: r.name, original: r.name })) : [{ id: null, name: "", original: "" }]
+  );
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  function updateItem(i, name) {
+    setItems((list) => list.map((it, idx) => (idx === i ? { ...it, name } : it)));
+  }
+  function addItem() {
+    setItems((list) => [...list, { id: null, name: "", original: "" }]);
+  }
+  function removeItem(i) {
+    setItems((list) => list.filter((_, idx) => idx !== i));
+  }
+
+  async function handleSave() {
+    setError("");
+    const cleaned = items.map((it) => ({ ...it, name: it.name.trim() })).filter((it) => it.name);
+    const lower = cleaned.map((it) => it.name.toLowerCase());
+    if (new Set(lower).size !== lower.length) {
+      setError(c.errDuplicateRule);
+      return;
+    }
+    setSaving(true);
+    try {
+      const keptIds = new Set(cleaned.filter((it) => it.id).map((it) => it.id));
+      const removed = rules.filter((r) => !keptIds.has(r.id));
+      const renamed = cleaned.filter((it) => it.id && it.name !== it.original);
+      const added = cleaned.filter((it) => !it.id);
+
+      // quitadas y renombradas se borran; renombradas y nuevas se vuelven a insertar
+      const toDelete = [...removed.map((r) => r.id), ...renamed.map((it) => it.id)];
+      for (const id of toDelete) await deleteRule(id);
+      await insertRules(userId, [...renamed.map((it) => it.name), ...added.map((it) => it.name)]);
+
+      // si renombró una regla, actualizamos el historial para que siga contando igual
+      const renames = {};
+      renamed.forEach((it) => { renames[it.original] = it.name; });
+      const updatedDays = [];
+      for (const d of days) {
+        const br = Array.isArray(d.broken_rules) ? d.broken_rules : [];
+        if (br.some((n) => renames[n])) {
+          const next = br.map((n) => renames[n] || n);
+          updatedDays.push(await updateDayBrokenRules(d.id, next));
+        }
+      }
+
+      const fresh = await fetchRules(userId);
+      onSaved(fresh, updatedDays, renames);
+      onClose();
+    } catch (e) {
+      setSaving(false);
+      setError(e.message || String(e));
+    }
+  }
+
+  return (
+    <div className="modal-overlay rules-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="modal-card form-modal-card">
+        <button className="modal-close" onClick={onClose} type="button">✕</button>
+        <h2 style={{ marginTop: 0 }}>{c.rulesModalTitle}</h2>
+        <p className="sub" style={{ marginTop: 0 }}>{c.rulesModalHelp}</p>
+        {error && <div className="msg err">{error}</div>}
+
+        {items.map((it, i) => (
+          <div className="dyn-block" key={i}>
+            <button type="button" className="dyn-remove" onClick={() => removeItem(i)}>✕</button>
+            <div className="field" style={{ marginBottom: 0, paddingRight: 28 }}>
+              <input
+                value={it.name}
+                placeholder={c.ruleInputPlaceholder}
+                onChange={(e) => updateItem(i, e.target.value)}
+              />
+            </div>
+          </div>
+        ))}
+        <button type="button" className="add-row-btn" onClick={addItem}>{c.addRuleRow}</button>
+
+        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 14 }}>
+          <button type="button" className="btn btn-primary" onClick={handleSave} disabled={saving}>
+            {saving ? c.saving : c.saveRules}
           </button>
         </div>
       </div>
