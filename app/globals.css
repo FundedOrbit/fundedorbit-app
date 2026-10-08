@@ -606,3 +606,6 @@ a{color:inherit;text-decoration:none;}
 .grid-3 > :last-child:nth-child(3n+1){grid-column:2;}
 @media (max-width:900px){.grid-3 > :last-child:nth-child(3n+1){grid-column:auto;}}
 @media (max-width:760px){.preview-col{flex-basis:100%;}.preview-row .preview-frame{max-width:280px;}.preview-col-cal .preview-frame{max-width:300px;}}
+
+.cmp-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+@media (max-width:900px){.cmp-kpi-row{grid-template-columns:repeat(2,1fr);}}

@@ -16,6 +16,8 @@ import {
   getPeriodRange,
   computeLearnings,
   computeCoachInsights,
+  currentStreak,
+  bestStreak,
 } from "../lib/complianceClient";
 
 function fillText(tpl, vars) {
@@ -115,6 +117,8 @@ export default function ComplianceTab({ userId }) {
 
   const range = useMemo(() => getPeriodRange(preset, customFrom, customTo), [preset, customFrom, customTo]);
   const learnings = useMemo(() => computeLearnings(days, range), [days, range]);
+  const streakNow = useMemo(() => currentStreak(days).n, [days]);
+  const streakBest = useMemo(() => bestStreak(days), [days]);
   const coach = useMemo(() => computeCoachInsights(days, preset, range), [days, preset, range]);
   const dayMap = useMemo(() => {
     const m = {};
@@ -198,7 +202,7 @@ export default function ComplianceTab({ userId }) {
         <div className="card"><div className="empty-state">{c.noData}</div></div>
       ) : (
         <>
-          <div className="charts-grid">
+          <div className="cmp-kpi-row">
             <div className="kpi-card">
               <div className="label">{c.compliance}</div>
               <div className="value" style={{ color: learnings.compliancePct >= 70 ? "var(--success)" : learnings.compliancePct >= 40 ? "var(--warning)" : "var(--danger)" }}>
@@ -210,6 +214,20 @@ export default function ComplianceTab({ userId }) {
               <div className="label">{c.results}</div>
               <div className="value">{learnings.total} <span className="value-sep" style={{ fontSize: 14 }}>{c.daysLogged.toLowerCase()}</span></div>
               <div className="sub">{fillText(c.resultsSub, { p: learnings.pos, b: learnings.be, n: learnings.neg })}</div>
+            </div>
+            <div className="kpi-card">
+              <div className="label">{c.streakCurrent}</div>
+              <div className="value" style={{ color: streakNow > 0 ? "var(--success)" : "var(--text-primary)" }}>
+                {streakNow} <span className="value-sep" style={{ fontSize: 14 }}>{c.daysUnit}</span>
+              </div>
+              <div className="sub">{c.streakCurrentSub}</div>
+            </div>
+            <div className="kpi-card">
+              <div className="label">{c.streakBest}</div>
+              <div className="value">
+                {streakBest} <span className="value-sep" style={{ fontSize: 14 }}>{c.daysUnit}</span>
+              </div>
+              <div className="sub">{c.streakBestSub}</div>
             </div>
           </div>
 
