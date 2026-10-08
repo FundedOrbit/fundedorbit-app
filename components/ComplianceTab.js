@@ -15,18 +15,62 @@ import {
   deleteDay,
   getPeriodRange,
   computeLearnings,
+  computeCoachInsights,
 } from "../lib/complianceClient";
 
 function fillText(tpl, vars) {
-  return Object.entries(vars).reduce((t, [k, v]) => t.replace(`{${k}}`, v), tpl);
+  return Object.entries(vars).reduce((t, [k, v]) => t.split(`{${k}}`).join(v), tpl);
 }
 
-function majorityText(c, maj, pos, neg, be, total) {
-  if (!maj) return c.majNone;
-  if (maj === "positive") return fillText(c.majPositive, { a: pos, t: total });
-  if (maj === "negative") return fillText(c.majNegative, { a: neg, t: total });
-  if (maj === "breakeven") return fillText(c.majBreakeven, { a: be, t: total });
-  return c.majTie;
+const RESULT_LABEL_KEY = { positive: "positive", breakeven: "breakeven", negative: "negative" };
+
+function GroupBox({ c, kind, group }) {
+  const title = kind === "follow" ? c.boxFollowTitle : c.boxBreakTitle;
+  return (
+    <div className={`card cmp-group ${kind}`}>
+      <h3>{title}</h3>
+      {group.total === 0 ? (
+        <div className="empty-state" style={{ padding: 16 }}>{c.boxEmpty}</div>
+      ) : (
+        <>
+          <div className="cmp-group-row">
+            <span className="cmp-group-label">{c.boxDays}</span>
+            <span className="cmp-group-value">{group.total}</span>
+          </div>
+          <div className="cmp-group-row">
+            <span className="cmp-group-label">{c.boxTopResult}</span>
+            <span className="cmp-group-value">
+              {group.resultKeys.map((k) => (
+                <span key={k} className="cmp-pill">
+                  <i className={`cal-circle ${k === "positive" ? "pos" : k === "negative" ? "neg" : "be"}`} />
+                  {c[RESULT_LABEL_KEY[k]]}
+                </span>
+              ))}
+            </span>
+            <span className="cmp-group-sub">{fillText(c.boxCount, { a: group.resultCount, t: group.total, p: group.resultPct.toFixed(0) })}</span>
+          </div>
+          <div className="cmp-group-row">
+            <span className="cmp-group-label">{c.boxTopMood}</span>
+            {group.moodKeys.length === 0 ? (
+              <span className="cmp-group-sub">{c.boxNoMood}</span>
+            ) : (
+              <>
+                <span className="cmp-group-value">
+                  {group.moodKeys.map((k) => {
+                    const def = MOODS.find((x) => x.key === k);
+                    return (
+                      <span key={k} className="cmp-pill">{def ? def.emoji : ""} {c.moods[k]}</span>
+                    );
+                  })}
+                </span>
+                <span className="cmp-group-sub">{fillText(c.boxCount, { a: group.moodCount, t: group.moodTotal, p: group.moodPct.toFixed(0) })}</span>
+              </>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
 }
 
 export default function ComplianceTab({ userId }) {
@@ -71,6 +115,7 @@ export default function ComplianceTab({ userId }) {
 
   const range = useMemo(() => getPeriodRange(preset, customFrom, customTo), [preset, customFrom, customTo]);
   const learnings = useMemo(() => computeLearnings(days, range), [days, range]);
+  const coach = useMemo(() => computeCoachInsights(days, preset, range), [days, preset, range]);
   const dayMap = useMemo(() => {
     const m = {};
     days.forEach((d) => {
@@ -153,7 +198,7 @@ export default function ComplianceTab({ userId }) {
         <div className="card"><div className="empty-state">{c.noData}</div></div>
       ) : (
         <>
-          <div className="kpi-mini-grid">
+          <div className="charts-grid">
             <div className="kpi-card">
               <div className="label">{c.compliance}</div>
               <div className="value" style={{ color: learnings.compliancePct >= 70 ? "var(--success)" : learnings.compliancePct >= 40 ? "var(--warning)" : "var(--danger)" }}>
@@ -166,18 +211,11 @@ export default function ComplianceTab({ userId }) {
               <div className="value">{learnings.total} <span className="value-sep" style={{ fontSize: 14 }}>{c.daysLogged.toLowerCase()}</span></div>
               <div className="sub">{fillText(c.resultsSub, { p: learnings.pos, b: learnings.be, n: learnings.neg })}</div>
             </div>
-            <div className="kpi-card">
-              <div className="label">{c.whenFollow}</div>
-              <div className={`value cmp-maj ${learnings.followedMajority || ""}`}>
-                {majorityText(c, learnings.followedMajority, learnings.followedPos, learnings.followedNeg, learnings.followedBe, learnings.followedTotal)}
-              </div>
-            </div>
-            <div className="kpi-card">
-              <div className="label">{c.whenBreak}</div>
-              <div className={`value cmp-maj ${learnings.brokeMajority || ""}`}>
-                {majorityText(c, learnings.brokeMajority, learnings.brokePos, learnings.brokeNeg, learnings.brokeBe, learnings.brokeTotal)}
-              </div>
-            </div>
+          </div>
+
+          <div className="charts-grid" style={{ marginTop: 18 }}>
+            <GroupBox c={c} kind="follow" group={learnings.followedGroup} />
+            <GroupBox c={c} kind="break" group={learnings.brokeGroup} />
           </div>
 
           <div className="charts-grid" style={{ marginTop: 18 }}>
@@ -215,6 +253,27 @@ export default function ComplianceTab({ userId }) {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        </>
+      )}
+
+      {learnings.total > 0 && coach.length > 0 && (
+        <>
+          <h2 className="section-title" style={{ marginTop: 30 }}>{c.coachTitle}</h2>
+          <div className="card">
+            <div className="alerts-list">
+              {coach.map((ins) => (
+                <div className="alert-item" key={ins.key}>
+                  <span className={`alert-dot ${ins.type === "success" ? "success" : ins.type === "warning" ? "warning" : "info"}`} />
+                  <span>
+                    {fillText(c.coach[ins.key], {
+                      ...ins.vars,
+                      ...(ins.vars.mood ? { mood: (c.moods[ins.vars.mood] || ins.vars.mood).toLowerCase() } : {}),
+                    })}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </>
