@@ -18,6 +18,7 @@ import {
   computeCoachInsights,
   currentStreak,
   bestStreak,
+  buildNotesHtml,
 } from "../lib/complianceClient";
 
 function fillText(tpl, vars) {
@@ -138,6 +139,21 @@ export default function ComplianceTab({ userId }) {
     setDays((prev) => [...prev.filter((x) => x.day !== row.day), row].sort((a, b) => a.day.localeCompare(b.day)));
     setSelectedDay(null);
   }
+  function handleDownloadNotes() {
+    if (!days.some((d) => d.note && d.note.trim())) {
+      window.alert(c.notesPdfNone);
+      return;
+    }
+    const w = window.open("", "_blank");
+    if (!w) {
+      window.alert(c.notesPdfBlocked);
+      return;
+    }
+    w.document.open();
+    w.document.write(buildNotesHtml(days, c));
+    w.document.close();
+  }
+
   function handleRulesSaved(newRules, updatedDays) {
     setRules(newRules);
     if (updatedDays.length) {
@@ -299,7 +315,10 @@ export default function ComplianceTab({ userId }) {
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap", marginTop: 30 }}>
         <h2 className="section-title" style={{ margin: 0 }}>{c.calendarTitle}</h2>
-        <button type="button" className="btn btn-ghost" onClick={() => setShowRules(true)}>⚙ {c.editRules}</button>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button type="button" className="btn btn-ghost" onClick={handleDownloadNotes}>⬇ {c.notesPdfBtn}</button>
+          <button type="button" className="btn btn-ghost" onClick={() => setShowRules(true)}>⚙ {c.editRules}</button>
+        </div>
       </div>
       <div style={{ height: 12 }} />
       <div className="card">

@@ -11,6 +11,8 @@ import LineChartSVG from "../../components/LineChartSVG";
 import AccountFormModal from "../../components/AccountFormModal";
 import BulkAccountModal from "../../components/BulkAccountModal";
 import ComplianceTab from "../../components/ComplianceTab";
+import ExpensesTab from "../../components/ExpensesTab";
+import { fetchExpenses, fetchCategories, expenseEvents } from "../../lib/expensesClient";
 import InsightsPanel from "../../components/InsightsPanel";
 import MilestonesBadges from "../../components/MilestonesBadges";
 import { syncInsights } from "../../lib/insightsSync";
@@ -106,6 +108,8 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState(null);
   const [userId, setUserId] = useState(null);
   const [allAccounts, setAllAccounts] = useState([]);
+  const [expenses, setExpenses] = useState([]);
+  const [expCategories, setExpCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
 
@@ -164,6 +168,16 @@ export default function DashboardPage() {
         }
 
         setAllAccounts(rows);
+
+        // gastos operativos: si falla (ej. tabla aún no creada) el dashboard sigue funcionando
+        try {
+          const [exp, cats] = await Promise.all([fetchExpenses(session.user.id), fetchCategories(session.user.id)]);
+          setExpenses(exp);
+          setExpCategories(cats);
+        } catch (e) {
+          setExpenses([]);
+          setExpCategories([]);
+        }
       } catch (err) {
         setLoadError(err?.message || String(err));
       } finally {
@@ -336,9 +350,18 @@ export default function DashboardPage() {
 
   const lifecycle = computeLifecycle(accounts);
   const payoutsStats = computePayouts(accounts);
-  const monthly = computeMonthly(accounts);
+  // gastos operativos dentro del rango de fechas del dashboard
+  const opsEvents = expenseEvents(expenses, range);
+  const opsTotal = opsEvents.reduce((s, ev) => s + ev.amount, 0);
+  const accountsInvested = stats.totalInvertido;
+  const investedAll = accountsInvested + opsTotal;
+  const netAll = stats.totalRetirado - investedAll;
+  const roiAll = investedAll > 0 ? (netAll / investedAll) * 100 : 0;
+  const accountsShare = investedAll > 0 ? (accountsInvested / investedAll) * 100 : 100;
+
+  const monthly = computeMonthly(accounts, opsEvents);
   const maxMonthly = Math.max(1, ...monthly.flatMap((mo) => [mo.invertido, mo.retirado]));
-  const timeline = buildTimelineSeries(accounts);
+  const timeline = buildTimelineSeries(accounts, opsEvents);
   const lastNet = timeline.netSeries.length ? timeline.netSeries[timeline.netSeries.length - 1].value : 0;
   const lastExp = timeline.expenseSeries.length ? timeline.expenseSeries[timeline.expenseSeries.length - 1].value : 0;
   const lastInc = timeline.incomeSeries.length ? timeline.incomeSeries[timeline.incomeSeries.length - 1].value : 0;
@@ -411,13 +434,20 @@ export default function DashboardPage() {
           </button>
           <button
             type="button"
+            className={`tab-btn ${tab === "gastos" ? "active" : ""}`}
+            onClick={() => setTab("gastos")}
+          >
+            {dict.expenses.tab}
+          </button>
+          <button
+            type="button"
             className={`tab-btn ${tab === "cumplimiento" ? "active" : ""}`}
             onClick={() => setTab("cumplimiento")}
           >
             {dict.compliance.tab}
           </button>
         </div>
-        <div className="app-toolbar-actions" style={tab === "cumplimiento" ? { display: "none" } : undefined}>
+        <div className="app-toolbar-actions" style={tab === "cumplimiento" || tab === "gastos" ? { display: "none" } : undefined}>
           {tab === "cuentas" && allAccounts.length > 0 && (
             <button className="btn btn-ghost" onClick={handleExportCsv}>
               {a.exportCsv}
@@ -498,22 +528,36 @@ export default function DashboardPage() {
                   </div>
                   <div className="kpi-card">
                     <div className="label">{a.kpiInvested}</div>
-                    <div className="value">{fmtMoney(stats.totalInvertido)}</div>
-                    <div className="sub">{a.kpiInvestedSub.replace("{n}", stats.totalCuentas)}</div>
+                    <div className="value">{fmtMoney(investedAll)}</div>
+                    <div className="sub">{a.kpiInvestedTotalSub}</div>
+                    <div className="kpi-breakdown">
+                      <div className="kpi-breakdown-bar">
+                        <span style={{ width: `${accountsShare}%`, background: "var(--accent-purple)" }} />
+                        <span style={{ width: `${100 - accountsShare}%`, background: "var(--accent-cyan)" }} />
+                      </div>
+                      <div className="kpi-breakdown-row">
+                        <span><i style={{ background: "var(--accent-purple)" }} /> {dict.expenses.breakdownAccounts} ({stats.totalCuentas})</span>
+                        <b>{fmtMoney(accountsInvested)}</b>
+                      </div>
+                      <div className="kpi-breakdown-row">
+                        <span><i style={{ background: "var(--accent-cyan)" }} /> {dict.expenses.breakdownOps}</span>
+                        <b>{fmtMoney(opsTotal)}</b>
+                      </div>
+                    </div>
                   </div>
                   <div className="kpi-card">
                     <div className="label">{a.kpiWithdrawn}</div>
                     <div className="value" style={{ color: "var(--success)" }}>{fmtMoney(stats.totalRetirado)}</div>
                     <div className="sub">{a.kpiWithdrawnSub}</div>
                   </div>
-                  <div className={`kpi-card ${stats.netProfit >= 0 ? "positive" : "negative"}`}>
+                  <div className={`kpi-card ${netAll >= 0 ? "positive" : "negative"}`}>
                     <div className="label">{a.kpiNet}</div>
-                    <div className="value">{fmtMoney(stats.netProfit)}</div>
+                    <div className="value">{fmtMoney(netAll)}</div>
                     <div className="sub">{a.kpiNetSub}</div>
                   </div>
-                  <div className={`kpi-card ${stats.roiGlobal >= 0 ? "positive" : "negative"}`}>
+                  <div className={`kpi-card ${roiAll >= 0 ? "positive" : "negative"}`}>
                     <div className="label">{a.kpiRoi}</div>
-                    <div className="value">{stats.roiGlobal.toFixed(1)}%</div>
+                    <div className="value">{roiAll.toFixed(1)}%</div>
                     <div className="sub">{a.kpiRoiSub}</div>
                   </div>
                   <div className="kpi-card">
@@ -1071,6 +1115,14 @@ export default function DashboardPage() {
             </>
           )}
         </>
+      ) : tab === "gastos" ? (
+        <ExpensesTab
+          userId={userId}
+          expenses={expenses}
+          setExpenses={setExpenses}
+          categories={expCategories}
+          setCategories={setExpCategories}
+        />
       ) : tab === "cumplimiento" ? (
         <section style={{ paddingTop: 20 }}>
           <ComplianceTab userId={userId} />
