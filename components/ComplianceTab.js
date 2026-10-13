@@ -411,6 +411,7 @@ function DayModal({ userId, day, record, rules, days, onRulesSaved, onClose, onS
   const { dict } = useLanguage();
   const c = dict.compliance;
   const [broken, setBroken] = useState(Array.isArray(record?.broken_rules) ? record.broken_rules : []);
+  const [plan, setPlan] = useState(record ? (record.followed_plan ? "yes" : "no") : "");
   const [result, setResult] = useState(record?.result || "");
   const [mood, setMood] = useState(record?.mood || "");
   const [note, setNote] = useState(record?.note || "");
@@ -419,6 +420,10 @@ function DayModal({ userId, day, record, rules, days, onRulesSaved, onClose, onS
 
   function toggleRule(name) {
     setBroken((b) => (b.includes(name) ? b.filter((x) => x !== name) : [...b, name]));
+  }
+  function choosePlan(value) {
+    setPlan(value);
+    if (value === "yes") setBroken([]);
   }
 
   const [showRules, setShowRules] = useState(false);
@@ -431,6 +436,10 @@ function DayModal({ userId, day, record, rules, days, onRulesSaved, onClose, onS
 
   async function handleSave() {
     setError("");
+    if (!plan) {
+      setError(c.errPlan);
+      return;
+    }
     if (!result) {
       setError(c.errResult);
       return;
@@ -439,11 +448,11 @@ function DayModal({ userId, day, record, rules, days, onRulesSaved, onClose, onS
     try {
       const row = await saveDay(userId, {
         day,
-        followed_plan: broken.length === 0,
+        followed_plan: plan === "yes",
         result,
         mood: mood || null,
         note: note.trim() || null,
-        broken_rules: broken,
+        broken_rules: plan === "yes" ? [] : broken,
       });
       onSaved(row);
     } catch (e) {
@@ -472,6 +481,18 @@ function DayModal({ userId, day, record, rules, days, onRulesSaved, onClose, onS
         <h2 style={{ marginTop: 0 }}>{c.modalTitle} · {day}</h2>
         {error && <div className="msg err">{error}</div>}
 
+        <div className="section-label">{c.planQ}</div>
+        <div className="cmp-choice">
+          <button type="button" className={`cmp-choice-btn pos ${plan === "yes" ? "active" : ""}`} onClick={() => choosePlan("yes")}>
+            ✓ {c.planYes}
+          </button>
+          <button type="button" className={`cmp-choice-btn neg ${plan === "no" ? "active" : ""}`} onClick={() => choosePlan("no")}>
+            ✕ {c.planNo}
+          </button>
+        </div>
+
+        {plan === "no" && (
+          <>
         <div className="section-label" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
           <span>{c.followedQ}</span>
           <button type="button" className="text-link" onClick={() => setShowRules(true)}>
@@ -501,6 +522,9 @@ function DayModal({ userId, day, record, rules, days, onRulesSaved, onClose, onS
             </div>
           ))}
         </div>
+
+          </>
+        )}
 
         <div className="section-label">{c.resultQ}</div>
         <div className="cmp-choice">
