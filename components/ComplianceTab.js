@@ -40,6 +40,12 @@ function GroupBox({ c, kind, group }) {
             <span className="cmp-group-label">{c.boxDays}</span>
             <span className="cmp-group-value">{group.total}</span>
           </div>
+          {group.noTradeCount > 0 && (
+            <div className="cmp-group-row">
+              <span className="cmp-group-label">{c.notrade}</span>
+              <span className="cmp-group-value">{group.noTradeCount}</span>
+            </div>
+          )}
           <div className="cmp-group-row">
             <span className="cmp-group-label">{c.boxTopResult}</span>
             <span className="cmp-group-value">
@@ -50,7 +56,7 @@ function GroupBox({ c, kind, group }) {
                 </span>
               ))}
             </span>
-            <span className="cmp-group-sub">{fillText(c.boxCount, { a: group.resultCount, t: group.total, p: group.resultPct.toFixed(0) })}</span>
+            <span className="cmp-group-sub">{fillText(c.boxCount, { a: group.resultCount, t: group.tradedTotal, p: group.resultPct.toFixed(0) })}</span>
           </div>
           <div className="cmp-group-row">
             <span className="cmp-group-label">{c.boxTopMood}</span>
@@ -230,7 +236,7 @@ export default function ComplianceTab({ userId }) {
             <div className="kpi-card">
               <div className="label">{c.results}</div>
               <div className="value">{learnings.total} <span className="value-sep" style={{ fontSize: 14 }}>{c.daysLogged.toLowerCase()}</span></div>
-              <div className="sub">{fillText(c.resultsSub, { p: learnings.pos, b: learnings.be, n: learnings.neg })}</div>
+              <div className="sub">{fillText(c.resultsSub, { p: learnings.pos, b: learnings.be, n: learnings.neg, z: learnings.noTrade })}</div>
             </div>
             <div className="kpi-card">
               <div className="label">{c.streakCurrent}</div>
@@ -357,7 +363,7 @@ export default function ComplianceTab({ userId }) {
               >
                 <span className="cal-num">{d}</span>
                 {rec ? (
-                  <span className={`cal-sticker cal-dot-result ${rec.result === "positive" ? "pos" : rec.result === "breakeven" ? "be" : "neg"}`} />
+                  <span className={`cal-sticker cal-dot-result ${rec.result === "positive" ? "pos" : rec.result === "breakeven" ? "be" : rec.result === "notrade" ? "nt" : "neg"}`} />
                 ) : (
                   !future && (
                     <span className="cal-add">
@@ -376,6 +382,7 @@ export default function ComplianceTab({ userId }) {
           <span><i className="cal-dot bad" /> {c.legendBroke}</span>
           <span><i className="cal-circle pos" /> {c.legendPositive}</span>
           <span><i className="cal-circle be" /> {c.legendBreakeven}</span>
+          <span><i className="cal-circle nt" /> {c.legendNoTrade}</span>
           <span><i className="cal-circle neg" /> {c.legendNegative}</span>
         </div>
       </div>
@@ -531,6 +538,7 @@ function DayModal({ userId, day, record, rules, days, onRulesSaved, onClose, onS
           <button type="button" className={`cmp-choice-btn pos ${result === "positive" ? "active" : ""}`} onClick={() => setResult("positive")}><i className="cal-circle pos" /> {c.positive}</button>
           <button type="button" className={`cmp-choice-btn be ${result === "breakeven" ? "active" : ""}`} onClick={() => setResult("breakeven")}><i className="cal-circle be" /> {c.breakeven}</button>
           <button type="button" className={`cmp-choice-btn neg ${result === "negative" ? "active" : ""}`} onClick={() => setResult("negative")}><i className="cal-circle neg" /> {c.negative}</button>
+          <button type="button" className={`cmp-choice-btn nt ${result === "notrade" ? "active" : ""}`} onClick={() => setResult("notrade")}><i className="cal-circle nt" /> {c.notrade}</button>
         </div>
 
         <div className="section-label">{c.moodQ}</div>

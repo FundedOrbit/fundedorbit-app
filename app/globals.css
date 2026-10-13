@@ -620,3 +620,7 @@ a{color:inherit;text-decoration:none;}
 .cmp-cat-defaults{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
 .field-hint{font-size:12px;margin-top:6px;line-height:1.4;color:var(--text-muted);}
 @media (max-width:760px){.cmp-kpi-row[style]{grid-template-columns:1fr !important;}}
+.cal-dot-result.nt,.cal-circle.nt{background:#9aa5c0;box-shadow:0 0 0 2px rgba(154,165,192,.35);}
+.cmp-choice{flex-wrap:wrap;}
+.cmp-choice-btn{flex:1 1 130px;}
+.cmp-choice-btn.nt.active{background:rgba(154,165,192,.18);border-color:#9aa5c0;}
