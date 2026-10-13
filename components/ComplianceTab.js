@@ -178,6 +178,7 @@ export default function ComplianceTab({ userId }) {
   const periodChips = [
     ["week", c.periodWeek],
     ["month", c.periodMonth],
+    ["all", c.periodAll],
     ["custom", c.periodCustom],
   ];
 
