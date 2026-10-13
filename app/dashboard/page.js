@@ -27,6 +27,9 @@ import {
   computePayouts,
   computeMonthly,
   buildTimelineSeries,
+  computeFlowTotals,
+  buildTimelineFromEvents,
+  computeMonthlyFromEvents,
   computeTopWorst,
   computeBreakdown,
   computeActiveWithdrawals,
@@ -114,6 +117,7 @@ export default function DashboardPage() {
   const [loadError, setLoadError] = useState(null);
 
   const [datePreset, setDatePreset] = useState("all");
+  const [viewMode, setViewMode] = useState("flow"); // "flow" = por fecha del movimiento, "cohort" = por fecha de compra de la cuenta
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
 
@@ -353,15 +357,29 @@ export default function DashboardPage() {
   // gastos operativos dentro del rango de fechas del dashboard
   const opsEvents = expenseEvents(expenses, range);
   const opsTotal = opsEvents.reduce((s, ev) => s + ev.amount, 0);
-  const accountsInvested = stats.totalInvertido;
+  // vista por flujo: todo se ubica en la fecha del movimiento (compra, reinicio, cobro, retiro)
+  const flow = viewMode === "flow" ? computeFlowTotals(allAccounts, range) : null;
+  const accountsInvested = flow ? flow.invested : stats.totalInvertido;
+  const withdrawnTotal = flow ? flow.withdrawn : stats.totalRetirado;
+  const avgWithdrawal = flow ? (flow.numWithdrawals > 0 ? flow.withdrawn / flow.numWithdrawals : 0) : stats.retiroPromedio;
+  const resetsCostShown = flow ? flow.resetsCost : stats.costoReinicios;
+  const resetsCountShown = flow ? flow.numResets : stats.numReinicios;
+  const activationCostShown = flow ? flow.activationCost : stats.costoActivacion;
+  const recurringCostShown = flow ? flow.recurringCost : stats.costoRecurrentes;
+  const recurringCountShown = flow ? flow.numRecurring : stats.numRecurrentes;
+  const accountsCountShown = flow ? flow.accountsCount : stats.totalCuentas;
   const investedAll = accountsInvested + opsTotal;
-  const netAll = stats.totalRetirado - investedAll;
+  const netAll = withdrawnTotal - investedAll;
   const roiAll = investedAll > 0 ? (netAll / investedAll) * 100 : 0;
   const accountsShare = investedAll > 0 ? (accountsInvested / investedAll) * 100 : 100;
 
-  const monthly = computeMonthly(accounts, opsEvents);
+  const monthly = flow
+    ? computeMonthlyFromEvents(flow.investEvents, flow.withdrawEvents, opsEvents)
+    : computeMonthly(accounts, opsEvents);
   const maxMonthly = Math.max(1, ...monthly.flatMap((mo) => [mo.invertido, mo.retirado]));
-  const timeline = buildTimelineSeries(accounts, opsEvents);
+  const timeline = flow
+    ? buildTimelineFromEvents(flow.investEvents, flow.withdrawEvents, opsEvents)
+    : buildTimelineSeries(accounts, opsEvents);
   const lastNet = timeline.netSeries.length ? timeline.netSeries[timeline.netSeries.length - 1].value : 0;
   const lastExp = timeline.expenseSeries.length ? timeline.expenseSeries[timeline.expenseSeries.length - 1].value : 0;
   const lastInc = timeline.incomeSeries.length ? timeline.incomeSeries[timeline.incomeSeries.length - 1].value : 0;
@@ -497,6 +515,16 @@ export default function DashboardPage() {
               {d.filterCount.replace("{n}", accounts.length).replace("{total}", allAccounts.length)}
             </span>
           </div>
+          <div className="view-mode-bar">
+            <span className="view-mode-label">{d.viewModeLabel}</span>
+            <button type="button" className={`chip ${viewMode === "flow" ? "active" : ""}`} onClick={() => setViewMode("flow")}>
+              {d.viewModeFlow}
+            </button>
+            <button type="button" className={`chip ${viewMode === "cohort" ? "active" : ""}`} onClick={() => setViewMode("cohort")}>
+              {d.viewModeCohort}
+            </button>
+            <span className="view-mode-hint">{viewMode === "flow" ? d.viewModeFlowHint : d.viewModeCohortHint}</span>
+          </div>
 
           {allAccounts.length === 0 ? (
             <div className="card" style={{ textAlign: "center", padding: 40 }}>
@@ -536,7 +564,7 @@ export default function DashboardPage() {
                         <span style={{ width: `${100 - accountsShare}%`, background: "var(--accent-cyan)" }} />
                       </div>
                       <div className="kpi-breakdown-row">
-                        <span><i style={{ background: "var(--accent-purple)" }} /> {dict.expenses.breakdownAccounts} ({stats.totalCuentas})</span>
+                        <span><i style={{ background: "var(--accent-purple)" }} /> {dict.expenses.breakdownAccounts} ({accountsCountShown})</span>
                         <b>{fmtMoney(accountsInvested)}</b>
                       </div>
                       <div className="kpi-breakdown-row">
@@ -547,7 +575,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="kpi-card">
                     <div className="label">{a.kpiWithdrawn}</div>
-                    <div className="value" style={{ color: "var(--success)" }}>{fmtMoney(stats.totalRetirado)}</div>
+                    <div className="value" style={{ color: "var(--success)" }}>{fmtMoney(withdrawnTotal)}</div>
                     <div className="sub">{a.kpiWithdrawnSub}</div>
                   </div>
                   <div className={`kpi-card ${netAll >= 0 ? "positive" : "negative"}`}>
@@ -574,23 +602,23 @@ export default function DashboardPage() {
                   </div>
                   <div className="kpi-card">
                     <div className="label">{a.kpiAvgWithdrawal}</div>
-                    <div className="value" style={{ color: "var(--success)" }}>{fmtMoney(stats.retiroPromedio)}</div>
+                    <div className="value" style={{ color: "var(--success)" }}>{fmtMoney(avgWithdrawal)}</div>
                     <div className="sub">{a.kpiAvgWithdrawalSub}</div>
                   </div>
                   <div className="kpi-card">
                     <div className="label">{a.kpiResetsSpent}</div>
-                    <div className="value">{fmtMoney(stats.costoReinicios)}</div>
-                    <div className="sub">{a.kpiResetsSpentSub.replace("{n}", stats.numReinicios)}</div>
+                    <div className="value">{fmtMoney(resetsCostShown)}</div>
+                    <div className="sub">{a.kpiResetsSpentSub.replace("{n}", resetsCountShown)}</div>
                   </div>
                   <div className="kpi-card">
                     <div className="label">{a.kpiActivationSpent}</div>
-                    <div className="value">{fmtMoney(stats.costoActivacion)}</div>
+                    <div className="value">{fmtMoney(activationCostShown)}</div>
                     <div className="sub">{a.kpiActivationSpentSub}</div>
                   </div>
                   <div className="kpi-card">
                     <div className="label">{a.kpiRecurringSpent}</div>
-                    <div className="value">{fmtMoney(stats.costoRecurrentes)}</div>
-                    <div className="sub">{a.kpiRecurringSpentSub.replace("{n}", stats.numRecurrentes)}</div>
+                    <div className="value">{fmtMoney(recurringCostShown)}</div>
+                    <div className="sub">{a.kpiRecurringSpentSub.replace("{n}", recurringCountShown)}</div>
                   </div>
                   <div className="kpi-card">
                     <div className="label">{a.kpiTotalAccountsPeriod}</div>

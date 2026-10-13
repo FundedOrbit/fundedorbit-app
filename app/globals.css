@@ -624,3 +624,7 @@ a{color:inherit;text-decoration:none;}
 .cmp-choice{flex-wrap:wrap;}
 .cmp-choice-btn{flex:1 1 130px;}
 .cmp-choice-btn.nt.active{background:rgba(154,165,192,.18);border-color:#9aa5c0;}
+
+.view-mode-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-12px 0 18px;padding:0 4px;}
+.view-mode-label{font-size:12px;color:var(--text-muted);font-weight:600;}
+.view-mode-hint{font-size:12px;color:var(--text-secondary);flex-basis:100%;}
