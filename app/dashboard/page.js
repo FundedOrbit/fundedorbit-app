@@ -376,7 +376,7 @@ export default function DashboardPage() {
   const monthly = flow
     ? computeMonthlyFromEvents(flow.investEvents, flow.withdrawEvents, opsEvents)
     : computeMonthly(accounts, opsEvents);
-  const maxMonthly = Math.max(1, ...monthly.flatMap((mo) => [mo.invertido, mo.retirado, Math.abs(mo.retirado - mo.invertido)]));
+  const maxMonthly = Math.max(1, ...monthly.flatMap((mo) => [mo.invertido, mo.retirado, Math.max(0, mo.retirado - mo.invertido)]));
   const timeline = flow
     ? buildTimelineFromEvents(flow.investEvents, flow.withdrawEvents, opsEvents)
     : buildTimelineSeries(accounts, opsEvents);
@@ -863,14 +863,16 @@ export default function DashboardPage() {
                               >
                                 <span className="bar-tooltip">{fmtMoney(mo.retirado)}</span>
                               </div>
-                              <div
-                                className={`bar net ${mo.retirado - mo.invertido < 0 ? "neg" : ""}`}
-                                style={{ height: `${(Math.abs(mo.retirado - mo.invertido) / maxMonthly) * 130}px` }}
-                                title={`${a.monthlyNet}: ${fmtMoney(mo.retirado - mo.invertido)}`}
-                                onMouseEnter={handleBarTooltipHover}
-                              >
-                                <span className="bar-tooltip">{fmtMoney(mo.retirado - mo.invertido)}</span>
-                              </div>
+                              {mo.retirado - mo.invertido > 0 && (
+                                <div
+                                  className="bar net"
+                                  style={{ height: `${((mo.retirado - mo.invertido) / maxMonthly) * 130}px` }}
+                                  title={`${a.monthlyNet}: ${fmtMoney(mo.retirado - mo.invertido)}`}
+                                  onMouseEnter={handleBarTooltipHover}
+                                >
+                                  <span className="bar-tooltip">{fmtMoney(mo.retirado - mo.invertido)}</span>
+                                </div>
+                              )}
                             </div>
                             <div className="bar-label">{mo.month.slice(5)}</div>
                           </div>
